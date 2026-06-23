@@ -1,18 +1,21 @@
-# Supabase MCP Setup Guide
+# Supabase Integration & MCP Setup Guide
 
-This project is configured to use **Supabase Model Context Protocol (MCP)** for enhanced backend support and database operations through AI agents.
+This project uses **Supabase** for backend operations with a prepared Model Context Protocol (MCP) configuration for enhanced AI support.
 
-## What is Supabase MCP?
+## Current Supabase Integration
 
-Supabase MCP is a Model Context Protocol server that provides:
-- Direct database query execution
-- Real-time subscription management
-- Authentication token handling
-- Row-level security (RLS) policy management
-- Table schema introspection
-- API endpoint integration
+### Direct Supabase Client (Currently Active)
 
-## Installation
+The project already integrates Supabase directly through:
+- **Server client:** `src/lib/supabase/server.ts`
+- **Client client:** `src/lib/supabase/client.ts`
+- **Database migrations:** `supabase/migrations/`
+
+You can use these immediately for backend operations.
+
+## Supabase MCP (Planned Feature)
+
+When the `@modelcontextprotocol/server-supabase` package becomes available, you'll be able to:
 
 ### 1. Install Supabase MCP Package
 ```bash
@@ -41,9 +44,48 @@ Add to VS Code settings (`.vscode/settings.json`):
 
 ## Usage with Claude
 
-Once configured, you can ask Claude to:
+Once MCP is available and configured, you can ask Claude to:
 
-### Database Operations
+### Current Workaround: Direct SQL Queries
+
+While MCP is in development, you can access Supabase directly:
+
+1. **Supabase Dashboard:** https://app.supabase.com
+2. **SQL Editor:** Write queries directly
+3. **Table Editor:** Visual data management
+4. **Auth Management:** User administration
+
+Example SQL queries you can run:
+
+```sql
+-- List all users and their roles
+SELECT 
+  p.email, 
+  p.full_name, 
+  om.role,
+  o.name as organization
+FROM profiles p
+JOIN organization_members om ON p.id = om.user_id
+JOIN organizations o ON om.organization_id = o.id
+ORDER BY om.role DESC;
+
+-- Add a new employee
+INSERT INTO organization_members (organization_id, user_id, role)
+VALUES ('org-uuid', 'user-uuid', 'employee');
+
+-- Update employee role
+UPDATE organization_members
+SET role = 'manager'
+WHERE user_id = 'user-uuid';
+
+-- Get team member distribution
+SELECT team_role, COUNT(*) as count
+FROM team_members
+WHERE team_id = 'team-uuid'
+GROUP BY team_role;
+```
+
+### Database Operations (When MCP Available)
 - **Query data:** "List all users with their roles"
 - **Insert data:** "Add a new employee with role viewer"
 - **Update data:** "Change user 123's role to manager"
@@ -99,7 +141,52 @@ npx @modelcontextprotocol/server-supabase
 - Run migrations: `supabase db push`
 - Check schema in Supabase dashboard
 
-## Best Practices
+## Accessing Supabase Today
+
+### Option 1: Supabase Dashboard
+Perfect for manual operations and administration:
+- URL: https://app.supabase.com
+- Features: Table Editor, SQL Editor, Auth, Policies, Real-time
+- Use for: User setup, testing, quick queries
+
+### Option 2: Direct Database Queries
+Edit files in the project:
+
+**Server-side (server actions):**
+```typescript
+// src/app/actions.ts
+'use server'
+import { createClient } from '@/lib/supabase/server'
+
+export async function myAction() {
+  const supabase = await createClient()
+  const { data } = await supabase.from('users').select('*')
+  return data
+}
+```
+
+**Client-side (React components):**
+```typescript
+// src/components/myComponent.tsx
+'use client'
+import { createClient } from '@/lib/supabase/client'
+
+export default function MyComponent() {
+  useEffect(() => {
+    const supabase = createClient()
+    // Perform queries
+  }, [])
+}
+```
+
+### Option 3: Existing Server Actions
+Use the employee management and team management pages which already have:
+- Role assignment
+- User management
+- Bulk operations
+- XLS import/export
+
+## When MCP Becomes Available
 
 1. **Always use service role key** for administrative operations
 2. **Never expose keys** in client-side code
