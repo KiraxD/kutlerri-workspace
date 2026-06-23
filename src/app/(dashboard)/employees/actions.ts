@@ -289,3 +289,45 @@ export async function importEmployeesAction(formData: FormData) {
     return { success: false, error: error.message }
   }
 }
+
+export async function getRoleAuditLogsAction() {
+  try {
+    const { userId, orgId } = await verifyPermission('manageUserRoles')
+
+    const supabase = await createClient()
+
+    // Fetch audit logs for the organization
+    const { data: auditLogs, error } = await supabase
+      .from('role_audit_log')
+      .select(
+        `
+        id,
+        user_id,
+        action_type,
+        role_type,
+        old_role,
+        new_role,
+        team_id,
+        created_at,
+        changed_by_user_id,
+        reason,
+        user:user_id(email, full_name),
+        team:team_id(name)
+      `
+      )
+      .eq('organization_id', orgId)
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    if (error) {
+      return { success: false, error: error.message, logs: [] }
+    }
+
+    return {
+      success: true,
+      logs: auditLogs || [],
+    }
+  } catch (error: any) {
+    return { success: false, error: error.message, logs: [] }
+  }
+}

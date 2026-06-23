@@ -35,12 +35,23 @@ export default async function HomePage() {
     .is('read_at', null)
     .is('archived_at', null)
 
-  // Fetch teams
+  // Fetch organization role
+  const { data: orgMembers } = await supabase
+    .from('organization_members')
+    .select('role, organization:organizations(name, id)')
+    .eq('user_id', user.id)
+    .limit(1)
+  
+  const orgRole = orgMembers?.[0]?.role || null
+  const organization = orgMembers?.[0]?.organization
+
+  // Fetch team memberships with team roles
   const { data: teamMembers } = await supabase
     .from('team_members')
-    .select('team:teams(id, name, identifier)')
+    .select('team_role, team:teams(id, name, identifier)')
     .eq('user_id', user.id)
   const teams = teamMembers?.map((tm: any) => tm.team) ?? []
+  const teamRoles = teamMembers?.map((tm: any) => ({ team: tm.team.name, role: tm.team_role })) ?? []
 
   // Fetch recent projects
   const teamIds = teams.map((t: any) => t.id)
@@ -89,6 +100,41 @@ export default async function HomePage() {
           {name} 👋
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">Here's what's happening in your workspace today.</p>
+
+        {/* Roles Display */}
+        <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg backdrop-blur-sm">
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-3">Your Roles & Access</p>
+          <div className="flex flex-wrap gap-3">
+            {/* Organization Role */}
+            {orgRole && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-full">
+                <span className="text-xs font-semibold text-purple-300">Organization</span>
+                <span className="px-2 py-0.5 bg-purple-500/40 rounded-full text-xs font-bold text-purple-100 capitalize">
+                  {orgRole.replace(/_/g, ' ')}
+                </span>
+              </div>
+            )}
+            
+            {/* Team Roles */}
+            {teamRoles.length > 0 && (
+              teamRoles.map((tr, idx) => (
+                <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-full">
+                  <span className="text-xs font-semibold text-blue-300">{tr.team}</span>
+                  <span className="px-2 py-0.5 bg-blue-500/40 rounded-full text-xs font-bold text-blue-100 capitalize">
+                    {tr.role.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              ))
+            )}
+
+            {/* No Role Message */}
+            {!orgRole && teamRoles.length === 0 && (
+              <div className="text-xs text-muted-foreground italic">
+                Awaiting role assignment from administrator
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Quick Stats */}
         <div className="flex gap-4 mt-6 flex-wrap">

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { ROLE_HIERARCHY, ROLE_DISPLAY_NAMES, type OrgRole } from '@/lib/permissions'
 import { RoleBadge } from '@/components/role-badge'
-import { addEmployeeAction, importEmployeesAction, updateEmployeeRoleAction, getEmployeesAction } from './actions'
+import { addEmployeeAction, importEmployeesAction, updateEmployeeRoleAction, getEmployeesAction, getRoleAuditLogsAction } from './actions'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -22,9 +22,10 @@ export default function EmployeesPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [employees, setEmployees] = useState<Employee[]>([])
-  const [activeTab, setActiveTab] = useState<'list' | 'add' | 'import'>('list')
+  const [activeTab, setActiveTab] = useState<'list' | 'add' | 'import' | 'audit'>('list')
   const [userRole, setUserRole] = useState<OrgRole | null>(null)
   const [orgId, setOrgId] = useState<string | null>(null)
+  const [auditLogs, setAuditLogs] = useState<any[]>([])
   
   // Form states
   const [formData, setFormData] = useState({
@@ -147,6 +148,17 @@ export default function EmployeesPage() {
     }
   }
 
+  const loadAuditLogs = async () => {
+    try {
+      const result = await getRoleAuditLogsAction()
+      if (result.success) {
+        setAuditLogs(result.logs)
+      }
+    } catch (err) {
+      console.error('Failed to load audit logs:', err)
+    }
+  }
+
   return (
     <div className="flex-1 flex flex-col p-6">
       <div className="max-w-6xl mx-auto w-full">
@@ -186,6 +198,20 @@ export default function EmployeesPage() {
             }`}
           >
             Import XLS
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('audit')
+              // Load audit logs
+              loadAuditLogs()
+            }}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === 'audit'
+                ? 'text-white border-b-2 border-blue-500'
+                : 'text-white/60 hover:text-white'
+            }`}
+          >
+            Audit Log
           </button>
         </div>
 
@@ -334,6 +360,48 @@ export default function EmployeesPage() {
                 {loading ? 'Importing...' : 'Import Employees'}
               </Button>
             </form>
+          </div>
+        )}
+
+        {activeTab === 'audit' && (
+          <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-6">
+            <h3 className="text-white font-semibold mb-4">Role Change Audit Log</h3>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {auditLogs.length === 0 ? (
+                <p className="text-white/60">No role changes yet</p>
+              ) : (
+                auditLogs.map((log: any) => (
+                  <div
+                    key={log.id}
+                    className="p-3 bg-[#0d0d0d] rounded border border-[#222] text-xs"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1">
+                        <p className="text-white font-medium">
+                          {log.user?.email}
+                        </p>
+                        <p className="text-white/60 capitalize">
+                          {log.action_type.replace(/_/g, ' ')}
+                        </p>
+                        {log.old_role && (
+                          <p className="text-white/60 mt-1">
+                            {log.old_role} → {log.new_role}
+                          </p>
+                        )}
+                        {log.team?.name && (
+                          <p className="text-white/60 mt-1">
+                            Team: {log.team.name}
+                          </p>
+                        )}
+                      </div>
+                      <p className="text-white/40 whitespace-nowrap">
+                        {new Date(log.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

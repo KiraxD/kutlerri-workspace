@@ -7,6 +7,7 @@ This project uses **Supabase** for backend operations with a prepared Model Cont
 ### Direct Supabase Client (Currently Active)
 
 The project already integrates Supabase directly through:
+
 - **Server client:** `src/lib/supabase/server.ts`
 - **Client client:** `src/lib/supabase/client.ts`
 - **Database migrations:** `supabase/migrations/`
@@ -18,6 +19,7 @@ You can use these immediately for backend operations.
 When the `@modelcontextprotocol/server-supabase` package becomes available, you'll be able to:
 
 ### 1. Install Supabase MCP Package
+
 ```bash
 npm install @modelcontextprotocol/server-supabase
 ```
@@ -25,6 +27,7 @@ npm install @modelcontextprotocol/server-supabase
 ### 2. Configure Environment
 
 Add to your `.env.local`:
+
 ```
 SUPABASE_URL=https://[your-project].supabase.co
 SUPABASE_KEY=your_service_role_key
@@ -34,6 +37,7 @@ SUPABASE_JWT_SECRET=your_jwt_secret
 ### 3. Enable MCP in VS Code
 
 Add to VS Code settings (`.vscode/settings.json`):
+
 ```json
 {
   "github.copilot.advanced": {
@@ -59,9 +63,9 @@ Example SQL queries you can run:
 
 ```sql
 -- List all users and their roles
-SELECT 
-  p.email, 
-  p.full_name, 
+SELECT
+  p.email,
+  p.full_name,
   om.role,
   o.name as organization
 FROM profiles p
@@ -86,17 +90,20 @@ GROUP BY team_role;
 ```
 
 ### Database Operations (When MCP Available)
+
 - **Query data:** "List all users with their roles"
 - **Insert data:** "Add a new employee with role viewer"
 - **Update data:** "Change user 123's role to manager"
 - **Delete data:** "Remove inactive users"
 
 ### Schema Inspection
+
 - **Table structure:** "Show me the team_members table schema"
 - **Relationships:** "What are the foreign keys in organization_members?"
 - **Policies:** "List RLS policies for the teams table"
 
 ### Real-time Features
+
 - **Subscribe to changes:** "Watch for new organization_members entries"
 - **Batch operations:** "Update all employees' roles to employee level"
 
@@ -113,6 +120,7 @@ GROUP BY team_role;
 ## MCP Server Configuration
 
 The configuration file `mcp.json` defines:
+
 - **Server**: Supabase MCP server
 - **Environment variables**: Auto-loaded from `.env.local`
 - **Status**: Enabled by default
@@ -127,16 +135,19 @@ npx @modelcontextprotocol/server-supabase
 ## Troubleshooting
 
 ### "MCP not responding"
+
 - Verify `SUPABASE_URL` and `SUPABASE_KEY` in `.env.local`
 - Ensure service role key has proper permissions
 - Check network connectivity to Supabase
 
 ### "Permission denied" errors
+
 - Verify RLS policies allow the operation
 - Check user role has required permission
 - Review Supabase audit logs for blocked operations
 
 ### "Table not found" errors
+
 - Confirm table name spelling (case-sensitive)
 - Run migrations: `supabase db push`
 - Check schema in Supabase dashboard
@@ -144,43 +155,50 @@ npx @modelcontextprotocol/server-supabase
 ## Accessing Supabase Today
 
 ### Option 1: Supabase Dashboard
+
 Perfect for manual operations and administration:
+
 - URL: https://app.supabase.com
 - Features: Table Editor, SQL Editor, Auth, Policies, Real-time
 - Use for: User setup, testing, quick queries
 
 ### Option 2: Direct Database Queries
+
 Edit files in the project:
 
 **Server-side (server actions):**
+
 ```typescript
 // src/app/actions.ts
-'use server'
-import { createClient } from '@/lib/supabase/server'
+"use server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function myAction() {
-  const supabase = await createClient()
-  const { data } = await supabase.from('users').select('*')
-  return data
+  const supabase = await createClient();
+  const { data } = await supabase.from("users").select("*");
+  return data;
 }
 ```
 
 **Client-side (React components):**
+
 ```typescript
 // src/components/myComponent.tsx
-'use client'
-import { createClient } from '@/lib/supabase/client'
+"use client";
+import { createClient } from "@/lib/supabase/client";
 
 export default function MyComponent() {
   useEffect(() => {
-    const supabase = createClient()
+    const supabase = createClient();
     // Perform queries
-  }, [])
+  }, []);
 }
 ```
 
 ### Option 3: Existing Server Actions
+
 Use the employee management and team management pages which already have:
+
 - Role assignment
 - User management
 - Bulk operations
