@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select } from '@/components/ui/select'
 import { ROLE_HIERARCHY, ROLE_DISPLAY_NAMES, type OrgRole } from '@/lib/permissions'
 import { RoleBadge } from '@/components/role-badge'
-import { addEmployeeAction, importEmployeesAction, updateEmployeeRoleAction, getEmployeesAction, getRoleAuditLogsAction } from './actions'
+import { addEmployeeAction, importEmployeesAction, updateEmployeeRoleAction, getEmployeesAction } from './actions'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Users, Search, Plus, Download } from 'lucide-react'
@@ -195,62 +194,65 @@ export default function EmployeesPage() {
         <div className="max-w-7xl mx-auto w-full">
           {/* Add Form - Slide In */}
           {showAddForm && (
-            <div className="mb-6 p-6 bg-card border border-border rounded-lg">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Add New Employee</h3>
-              <form onSubmit={handleAddEmployee} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground block mb-2">Email</Label>
-                  <Input
-                    type="email"
-                    placeholder="name@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                  />
+            <div className="mb-6 p-8 bg-card border border-border rounded-lg">
+              <h3 className="text-2xl font-bold text-foreground mb-6">Add New Employee</h3>
+              <form onSubmit={handleAddEmployee} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <Label className="text-sm font-medium text-foreground block mb-3">Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="name@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-foreground block mb-3">Full Name</Label>
+                    <Input
+                      type="text"
+                      placeholder="John Doe"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-foreground block mb-3">Role</Label>
+                    <select
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value as OrgRole })}
+                      className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="employee">Employee</option>
+                      {isSuper && (
+                        <>
+                          <option value="manager">Manager</option>
+                          <option value="admin">Admin</option>
+                          <option value="super_admin">Super Admin</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground block mb-2">Full Name</Label>
-                  <Input
-                    type="text"
-                    placeholder="John Doe"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground block mb-2">Role</Label>
-                  <Select
-                    value={formData.role}
-                    onValueChange={(value: string | null) => {
-                      if (value) setFormData({ ...formData, role: value as OrgRole })
-                    }}
-                  >
-                    {isSuper ? (
-                      <>
-                        <option value="viewer">Viewer</option>
-                        <option value="employee">Employee</option>
-                        <option value="manager">Manager</option>
-                        <option value="admin">Admin</option>
-                        <option value="super_admin">Super Admin</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="viewer">Viewer</option>
-                        <option value="employee">Employee</option>
-                      </>
-                    )}
-                  </Select>
-                </div>
-                <div className="flex items-end gap-2">
-                  <Button type="submit" disabled={loading} className="w-full">
-                    {loading ? 'Adding...' : 'Add'}
-                  </Button>
+                <div className="flex gap-3 justify-end pt-4">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setShowAddForm(false)}
+                    className="px-6"
                   >
                     Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="px-8"
+                  >
+                    {loading ? 'Adding...' : 'Add'}
                   </Button>
                 </div>
               </form>
@@ -274,19 +276,25 @@ export default function EmployeesPage() {
             {/* Filters */}
             <div className="flex gap-4">
               <div className="flex-1">
-                <Select defaultValue="all">
+                <select
+                  defaultValue="all"
+                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
                   <option value="all">All Departments</option>
                   <option value="engineering">Engineering</option>
                   <option value="design">Design</option>
                   <option value="marketing">Marketing</option>
-                </Select>
+                </select>
               </div>
               <div className="flex-1">
-                <Select defaultValue="all">
+                <select
+                  defaultValue="all"
+                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
                   <option value="all">All Statuses</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
-                </Select>
+                </select>
               </div>
             </div>
           </div>
@@ -352,30 +360,26 @@ export default function EmployeesPage() {
                           </span>
                         </td>
                         <td className="py-4 px-6">
-                          <Select
-                            value={emp.role}
-                            onValueChange={(newRole: string | null) => {
-                              if (newRole) handleRoleChange(emp.id, newRole as OrgRole)
+                          <select
+                            value={emp.role === 'unassigned' ? '' : emp.role}
+                            onChange={(e) => {
+                              if (e.target.value) handleRoleChange(emp.id, e.target.value as OrgRole)
                             }}
+                            className="px-3 py-1 border border-border rounded-md bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                           >
                             {emp.role === 'unassigned' && (
-                              <option value="unassigned">Select Role...</option>
+                              <option value="">Select Role...</option>
                             )}
-                            {isSuper ? (
+                            <option value="viewer">Viewer</option>
+                            <option value="employee">Employee</option>
+                            {isSuper && (
                               <>
-                                <option value="viewer">Viewer</option>
-                                <option value="employee">Employee</option>
                                 <option value="manager">Manager</option>
                                 <option value="admin">Admin</option>
                                 <option value="super_admin">Super Admin</option>
                               </>
-                            ) : (
-                              <>
-                                <option value="viewer">Viewer</option>
-                                <option value="employee">Employee</option>
-                              </>
                             )}
-                          </Select>
+                          </select>
                         </td>
                       </tr>
                     ))
