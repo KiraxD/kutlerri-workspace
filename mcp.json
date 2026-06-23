@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-supabase"],
+      "env": {
+        "SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
+        "SUPABASE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}",
+        "SUPABASE_JWT_SECRET": "${SUPABASE_JWT_SECRET}"
+      },
+      "disabled": false
+    }
+  }
+}
