@@ -370,7 +370,7 @@ const PERMISSIONS_MATRIX: Record<OrgRole, Record<string, boolean>> = {
  * @param permission - The permission to check
  * @returns true if the role has the permission, false otherwise
  */
-export function hasPermission(role: OrgRole | null, permission: string): boolean {
+export function hasPermission(role: OrgRole | null | undefined, permission: string): boolean {
   if (!role) return false
   return PERMISSIONS_MATRIX[role]?.[permission] ?? false
 }
@@ -381,7 +381,7 @@ export function hasPermission(role: OrgRole | null, permission: string): boolean
  * @param targetRole - The minimum role required
  * @returns true if user's role >= target role in hierarchy
  */
-export function isAtLeastRole(role: OrgRole | null, targetRole: OrgRole): boolean {
+export function isAtLeastRole(role: OrgRole | null | undefined, targetRole: OrgRole): boolean {
   if (!role) return false
   return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY[targetRole]
 }
@@ -391,7 +391,7 @@ export function isAtLeastRole(role: OrgRole | null, targetRole: OrgRole): boolea
  * @param role - The organization role
  * @returns object with all permissions for the role
  */
-export function getPermissions(role: OrgRole | null): Record<string, boolean> {
+export function getPermissions(role: OrgRole | null | undefined): Record<string, boolean> {
   if (!role) return {}
   return PERMISSIONS_MATRIX[role] ?? {}
 }
@@ -456,7 +456,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
  * @param navItem - The navigation item to check
  * @returns true if the nav item should be visible
  */
-export function isNavItemVisible(role: OrgRole | null, navItem: string): boolean {
+export function isNavItemVisible(role: OrgRole | null | undefined, navItem: string): boolean {
   if (!role) return false
   return NAV_VISIBILITY[role]?.includes(navItem) ?? false
 }
@@ -466,7 +466,7 @@ export function isNavItemVisible(role: OrgRole | null, navItem: string): boolean
  * @param role - The organization role
  * @returns array of visible nav item keys
  */
-export function getVisibleNavItems(role: OrgRole | null): string[] {
+export function getVisibleNavItems(role: OrgRole | null | undefined): string[] {
   if (!role) return []
   return NAV_VISIBILITY[role] ?? []
 }

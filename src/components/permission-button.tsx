@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 
-interface PermissionButtonProps extends ButtonProps {
+interface PermissionButtonProps extends Omit<ButtonProps, 'role'> {
   role: OrgRole | null
   permission?: string
   minRole?: OrgRole
@@ -47,8 +47,8 @@ export function PermissionButton({
 
   return (
     <TooltipProvider>
-      <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
+      <Tooltip>
+        <TooltipTrigger>
           <Button disabled={isDisabled} className={className} {...rest}>
             {children}
           </Button>

@@ -37,6 +37,10 @@ export async function verifyPermission(
     targetOrgId = orgMembers[0].organization_id
   }
 
+  if (!targetOrgId) {
+    throw new Error('Organization not found')
+  }
+
   // Get user's role
   const { data: orgMember } = await supabase
     .from('organization_members')
