@@ -2,12 +2,14 @@ import { login, signup } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Image from 'next/image'
 
 export default function LoginPage() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-2 text-center">
+        <div className="flex flex-col items-center space-y-2 text-center mb-6">
+          <Image src="/images/logo.webp" alt="Kutlerri Logo" width={140} height={40} className="mb-4" />
           <h1 className="text-2xl font-semibold tracking-tight">Welcome to Kutlerri</h1>
           <p className="text-sm text-muted-foreground">Enter your email to sign in to your account</p>
         </div>
