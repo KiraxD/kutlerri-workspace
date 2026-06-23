@@ -1,25 +1,12 @@
 'use client'
 
 import Image from 'next/image'
-
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  Inbox,
-  Search,
-  Settings,
-  Star,
-  Users,
-  Target,
-  Route,
-  CheckCircle2,
-  MoreHorizontal,
-  Home,
-  Layers,
-  Compass,
-  Briefcase,
-  Lock,
-  Bell,
+  Inbox, Search, Settings, Star, Users, Target,
+  Route, CheckCircle2, Home, Layers, Compass,
+  Briefcase, Lock, MoreHorizontal,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,43 +17,51 @@ interface NavItemProps {
   shortcut?: string
 }
 
-export function Sidebar({ userName, userEmail }: { userName: string | null; userEmail: string | null }) {
+export function Sidebar({ userEmail }: { userName: string | null; userEmail: string | null }) {
   return (
-    <aside className="w-[240px] flex-shrink-0 border-r border-border bg-sidebar flex flex-col z-20 shadow-sm">
-      {/* Workspace Header — sidebar is now black, logo renders naturally */}
-      <div className="flex flex-col px-4 py-4 border-b border-[#2a2a2a] gap-1.5">
+    <aside className="w-[240px] flex-shrink-0 flex flex-col z-20 bg-[#0d0d0d] border-r border-[#222]" style={{ height: '100vh' }}>
+
+      {/* Logo Header */}
+      <div className="flex flex-col px-4 pt-4 pb-3 border-b border-[#222] shrink-0">
         <Image
           src="/images/kutlerri-logo.png"
           alt="Kutlerri"
           width={120}
           height={30}
-          className="h-8 w-auto object-contain"
+          className="h-8 w-auto object-contain object-left"
           priority
         />
-        <span className="text-[10px] text-white/40 truncate">{userEmail}</span>
+        <span className="text-[10px] text-white/30 truncate mt-1.5">{userEmail}</span>
       </div>
 
-      {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-2 scrollbar-hide">
-        <div className="px-3 mb-3 space-y-0.5">
+      {/* Navigation — scrollable */}
+      <nav className="flex-1 overflow-y-auto py-3 min-h-0" style={{ scrollbarWidth: 'none' }}>
+
+        {/* Main */}
+        <div className="px-2 mb-1 space-y-0.5">
           <NavItem href="/search" icon={<Search className="w-4 h-4" />} label="Search" shortcut="⌘K" />
           <NavItem href="/home" icon={<Home className="w-4 h-4" />} label="Home" />
           <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />
           <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
         </div>
 
-        <div className="px-3 mb-3">
-          <div className="text-[10px] font-semibold text-white/30 mb-1 px-2 uppercase tracking-wider">Your Space</div>
+        {/* Divider */}
+        <div className="mx-4 my-2 border-t border-[#222]" />
+
+        {/* Your Space */}
+        <div className="px-2 mb-1">
+          <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Your Space</p>
           <div className="space-y-0.5">
             <NavItem href="/favorites" icon={<Star className="w-4 h-4" />} label="Favorites" />
           </div>
         </div>
 
-        <div className="px-3 mb-3">
-          <div className="flex items-center justify-between text-[10px] font-semibold text-white/30 mb-1 px-2 uppercase tracking-wider group">
-            <span>Workspace</span>
-            <MoreHorizontal className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-pointer text-white/40" />
-          </div>
+        {/* Divider */}
+        <div className="mx-4 my-2 border-t border-[#222]" />
+
+        {/* Workspace */}
+        <div className="px-2 mb-2">
+          <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Workspace</p>
           <div className="space-y-0.5">
             <NavItem href="/initiatives" icon={<Compass className="w-4 h-4" />} label="Initiatives" />
             <NavItem href="/epics" icon={<Layers className="w-4 h-4" />} label="Epics" />
@@ -77,10 +72,11 @@ export function Sidebar({ userName, userEmail }: { userName: string | null; user
             <NavItem href="/teams" icon={<Users className="w-4 h-4" />} label="Teams" />
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-[#2a2a2a] mt-auto">
+      </nav>
+
+      {/* Footer — always visible at bottom */}
+      <div className="px-2 py-3 border-t border-[#222] shrink-0">
         <NavItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" />
       </div>
     </aside>
@@ -91,27 +87,27 @@ function NavItem({ href, icon, label, shortcut }: NavItemProps) {
   const pathname = usePathname()
   const isActive = href === '/home'
     ? pathname === '/home' || pathname === '/'
-    : pathname.startsWith(href) && href !== '/'
+    : pathname === href || (pathname.startsWith(href + '/') && href !== '/')
 
   return (
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-lg transition-all group',
+        'flex items-center gap-2.5 px-2.5 py-1.5 text-sm rounded-md transition-all duration-150 group w-full',
         isActive
-          ? 'bg-primary/20 text-primary font-medium'
-          : 'text-white/60 hover:bg-white/8 hover:text-white'
+          ? 'bg-[#9F7CEF]/15 text-[#9F7CEF] font-medium'
+          : 'text-white/55 hover:bg-white/[0.06] hover:text-white'
       )}
     >
-      <div className={cn(
-        'transition-colors shrink-0',
-        isActive ? 'text-primary' : 'text-white/40 group-hover:text-white'
+      <span className={cn(
+        'shrink-0 transition-colors',
+        isActive ? 'text-[#9F7CEF]' : 'text-white/35 group-hover:text-white/80'
       )}>
         {icon}
-      </div>
-      <span className="flex-1 truncate">{label}</span>
+      </span>
+      <span className="flex-1 truncate leading-none">{label}</span>
       {shortcut && (
-        <span className="text-[10px] uppercase font-mono bg-white/10 px-1.5 py-0.5 rounded text-white/40">
+        <span className="text-[10px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-white/30 shrink-0">
           {shortcut}
         </span>
       )}

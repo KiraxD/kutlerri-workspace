@@ -19,7 +19,7 @@ export default async function TeamsPage() {
   const teams = teamMembers?.map((tm: any) => tm.team) || []
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col bg-background">
       <div className="px-6 py-4 border-b border-border">
         <h1 className="text-lg font-semibold">Teams</h1>
       </div>

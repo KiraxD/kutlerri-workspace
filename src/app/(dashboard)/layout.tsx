@@ -33,12 +33,13 @@ export default async function DashboardLayout({
       />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-background">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative bg-background">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-background to-background pointer-events-none" />
-        <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
+        <div className="relative z-10 flex-1 flex flex-col min-h-full">
           {children}
         </div>
       </main>
+
 
       {/* Global Command Palette */}
       <CommandPalette />

@@ -38,7 +38,7 @@ export default async function SearchPage({
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col bg-background">
       <div className="flex items-center px-6 py-4 border-b border-border">
         <h1 className="text-lg font-semibold flex items-center gap-2">
           <SearchIcon className="w-5 h-5" />

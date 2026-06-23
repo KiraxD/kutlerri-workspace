@@ -80,7 +80,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-background">
+    <div className="flex flex-col bg-background">
       {/* Hero Header */}
       <div className="relative px-8 pt-10 pb-8 border-b border-border bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />

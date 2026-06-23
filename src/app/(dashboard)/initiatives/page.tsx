@@ -60,7 +60,7 @@ export default async function InitiativesPage() {
   const sortedGroups = order.filter((s) => grouped[s]?.length > 0)
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-y-auto">
+    <div className="flex flex-col bg-background">
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-gradient-to-r from-violet-50 to-background">
         <div className="flex items-center gap-3">

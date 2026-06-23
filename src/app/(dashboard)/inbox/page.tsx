@@ -22,7 +22,7 @@ export default async function InboxPage() {
   const notifList = notifications ?? []
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col bg-background">
       <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
         <InboxIcon className="w-5 h-5 text-primary" />
         <h1 className="text-lg font-semibold">Inbox</h1>
