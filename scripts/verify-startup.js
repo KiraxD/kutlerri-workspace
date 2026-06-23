@@ -2,6 +2,11 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
+// Polyfill WebSocket for Node.js environments
+if (typeof global.WebSocket === 'undefined') {
+  global.WebSocket = require('ws');
+}
+
 // Minimal polyfill/loading of .env.local without external dotenv module
 const envPath = path.resolve(process.cwd(), '.env.local');
 if (fs.existsSync(envPath)) {
