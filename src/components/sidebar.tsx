@@ -34,18 +34,18 @@ export function Sidebar({ userName, userEmail }: { userName: string | null; user
   return (
     <aside className="w-[240px] flex-shrink-0 border-r border-border bg-sidebar flex flex-col z-20 shadow-sm">
       {/* Workspace Header */}
-      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
-        <Image
-          src="/images/icon.png"
-          alt="Kutlerri"
-          width={32}
-          height={32}
-          className="rounded-lg shrink-0 shadow-sm"
-        />
-        <div className="min-w-0">
-          <span className="text-sm font-bold font-heading tracking-wide truncate block">Kutlerri</span>
-          <span className="text-[10px] text-muted-foreground truncate block">{userEmail}</span>
+      <div className="flex flex-col px-3 py-3 border-b border-border gap-1">
+        <div className="rounded-lg overflow-hidden bg-[#0d0d0d] flex items-center px-2 py-1.5">
+          <Image
+            src="/images/kutlerri-logo.png"
+            alt="Kutlerri"
+            width={110}
+            height={28}
+            className="h-7 w-auto object-contain"
+            priority
+          />
         </div>
+        <span className="text-[10px] text-muted-foreground truncate px-1">{userEmail}</span>
       </div>
 
       {/* Navigation */}
