@@ -199,36 +199,46 @@ export default function TeamsPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-6">
-      <div className="max-w-6xl mx-auto w-full">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Briefcase className="w-8 h-8 text-[#9F7CEF]" />
-            <h1 className="text-3xl font-bold text-white">Team Management</h1>
-          </div>
-          <p className="text-white/60">Manage team members and assign individual roles</p>
+    <div className="flex-1 flex flex-col p-8 bg-gradient-to-br from-[#0d0d0d] to-[#1a1a1a]">
+      <div className="max-w-7xl mx-auto w-full">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
+            Team Management
+          </h1>
+          <p className="text-white/60">Organize employees and assign team-level roles</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Teams Sidebar */}
+          {/* Teams List Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-4">
-              <h3 className="text-white font-semibold mb-3">Teams</h3>
-              <div className="space-y-2">
-                {teams.map((team) => (
-                  <button
-                    key={team.id}
-                    onClick={() => setSelectedTeam(team)}
-                    className={`w-full text-left px-3 py-2 rounded transition-colors ${
-                      selectedTeam?.id === team.id
-                        ? 'bg-[#9F7CEF]/15 text-[#9F7CEF]'
-                        : 'text-white/60 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    <p className="font-medium text-sm">{team.name}</p>
-                    <p className="text-xs text-white/40">{members.length} members</p>
-                  </button>
-                ))}
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl shadow-xl overflow-hidden sticky top-8">
+              <div className="p-4 border-b border-[#333] bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+                <h3 className="text-white font-semibold flex items-center gap-2">
+                  <span>🏢</span> Your Teams
+                </h3>
+              </div>
+              <div className="p-3 max-h-96 overflow-y-auto">
+                {teams.length === 0 ? (
+                  <p className="text-white/40 text-sm py-4 text-center">No teams yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {teams.map((team) => (
+                      <button
+                        key={team.id}
+                        onClick={() => setSelectedTeam(team)}
+                        className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${
+                          selectedTeam?.id === team.id
+                            ? 'bg-gradient-to-r from-purple-500/30 to-blue-500/30 border border-purple-500/50 text-white'
+                            : 'border border-transparent text-white/70 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <p className="font-medium">{team.name}</p>
+                        <p className="text-xs text-white/50 mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -236,117 +246,136 @@ export default function TeamsPage() {
           {/* Team Members */}
           <div className="lg:col-span-3">
             {selectedTeam ? (
-              <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-white">{selectedTeam.name} Members</h3>
-                  <Button
-                    onClick={() => setShowAddMember(!showAddMember)}
-                    className="gap-2"
-                    size="sm"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Member
-                  </Button>
+              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl shadow-xl overflow-hidden">
+                {/* Team Header */}
+                <div className="p-6 border-b border-[#333] bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">{selectedTeam.name}</h2>
+                      <p className="text-white/60 text-sm mt-1">{members.length} team member{members.length !== 1 ? 's' : ''}</p>
+                    </div>
+                    <button
+                      onClick={() => setShowAddMember(!showAddMember)}
+                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Member
+                    </button>
+                  </div>
                 </div>
 
+                {/* Add Member Form */}
                 {showAddMember && (
-                  <div className="bg-[#0d0d0d] border border-[#333] rounded-lg p-4 mb-4 space-y-3">
-                    <div>
-                      <Label htmlFor="employee" className="text-white text-sm">
-                        Select Employee
-                      </Label>
-                      <Select
-                        value={selectedEmployee || ''}
-                        onValueChange={(val: string | null) => {
-                          if (val) setSelectedEmployee(val)
-                        }}
-                      >
-                        <option value="">Choose an employee...</option>
-                        {availableEmployees
-                          .filter((emp) => !members.find((m) => m.id === emp.id))
-                          .map((emp) => (
-                            <option key={emp.id} value={emp.id}>
-                              {emp.full_name || emp.email}
+                  <div className="p-6 border-b border-[#333] bg-[#0d0d0d]">
+                    <h3 className="text-white font-semibold mb-4">Add Team Member</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="employee" className="text-white font-medium block mb-2">
+                          Select Employee
+                        </Label>
+                        <Select
+                          value={selectedEmployee || ''}
+                          onValueChange={(val: string | null) => {
+                            if (val) setSelectedEmployee(val)
+                          }}
+                        >
+                          <option value="">Choose an employee...</option>
+                          {availableEmployees
+                            .filter((emp) => !members.find((m) => m.id === emp.id))
+                            .map((emp) => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.full_name || emp.email}
+                              </option>
+                            ))}
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="role" className="text-white font-medium block mb-2">
+                          Team Role
+                        </Label>
+                        <Select
+                          value={selectedTeamRole || 'member'}
+                          onValueChange={(val: string | null) => {
+                            if (val) setSelectedTeamRole(val as 'team_lead' | 'senior_member' | 'member' | 'guest')
+                          }}
+                        >
+                          {TEAM_ROLES.map((role) => (
+                            <option key={role.value} value={role.value}>
+                              {role.label}
                             </option>
                           ))}
-                      </Select>
+                        </Select>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="role" className="text-white text-sm">
-                        Team Role
-                      </Label>
-                      <Select
-                        value={selectedTeamRole || 'member'}
-                        onValueChange={(val: string | null) => {
-                          if (val) setSelectedTeamRole(val as 'team_lead' | 'senior_member' | 'member' | 'guest')
-                        }}
-                      >
-                        {TEAM_ROLES.map((role) => (
-                          <option key={role.value} value={role.value}>
-                            {role.label}
-                          </option>
-                        ))}
-                      </Select>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
+                    <div className="flex gap-3 mt-4">
+                      <button
                         onClick={handleAddMember}
                         disabled={loading || !selectedEmployee}
-                        size="sm"
+                        className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
                       >
-                        {loading ? 'Adding...' : 'Add Member'}
-                      </Button>
-                      <Button
+                        {loading ? 'Adding...' : '✓ Add Member'}
+                      </button>
+                      <button
                         onClick={() => setShowAddMember(false)}
-                        variant="outline"
-                        size="sm"
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all"
                       >
                         Cancel
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 )}
 
-                <div className="space-y-2">
+                {/* Members List */}
+                <div className="p-6">
                   {members.length === 0 ? (
-                    <p className="text-white/60 text-center py-4">No members in this team</p>
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <div className="text-5xl mb-4">👥</div>
+                      <p className="text-white/60">No members in this team</p>
+                      <p className="text-white/40 text-sm mt-2">Add your first team member to get started</p>
+                    </div>
                   ) : (
-                    members.map((member) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center justify-between p-3 bg-[#0d0d0d] rounded border border-[#222] hover:border-[#333] transition-colors"
-                      >
-                        <div className="flex-1">
-                          <p className="text-white font-medium text-sm">{member.full_name || member.email}</p>
-                          <p className="text-white/40 text-xs">{member.email}</p>
+                    <div className="space-y-3">
+                      {members.map((member) => (
+                        <div
+                          key={member.id}
+                          className="flex items-center justify-between p-4 bg-[#0d0d0d] border border-[#222] rounded-lg hover:border-[#333] transition-all"
+                        >
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{member.full_name || 'N/A'}</p>
+                            <p className="text-white/60 text-sm">{member.email}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-center">
+                              <Select
+                                value={member.team_role}
+                                onValueChange={(val: any) => handleUpdateRole(member.id, val)}
+                              >
+                                {TEAM_ROLES.map((role) => (
+                                  <option key={role.value} value={role.value}>
+                                    {role.label}
+                                  </option>
+                                ))}
+                              </Select>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveMember(member.id)}
+                              className="p-2 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-all text-red-400 hover:text-red-300"
+                              title="Remove member"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={member.team_role}
-                            onValueChange={(val: any) => handleUpdateRole(member.id, val)}
-                          >
-                            {TEAM_ROLES.map((role) => (
-                              <option key={role.value} value={role.value}>
-                                {role.label}
-                              </option>
-                            ))}
-                          </Select>
-                          <button
-                            onClick={() => handleRemoveMember(member.id)}
-                            className="p-2 hover:bg-red-500/10 rounded transition-colors text-red-500"
-                            title="Remove member"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-6 text-center">
-                <p className="text-white/60">Select a team to view members</p>
+              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl shadow-xl p-12 text-center">
+                <div className="text-6xl mb-4">🏢</div>
+                <p className="text-white/60 text-lg">Select a team to view and manage members</p>
+                <p className="text-white/40 text-sm mt-2">Choose a team from the list on the left to get started</p>
               </div>
             )}
           </div>

@@ -160,123 +160,133 @@ export default function EmployeesPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-6">
-      <div className="max-w-6xl mx-auto w-full">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Employee Management</h1>
-          <p className="text-white/60">Manage team members and assign roles</p>
+    <div className="flex-1 flex flex-col p-8 bg-gradient-to-br from-[#0d0d0d] to-[#1a1a1a]">
+      <div className="max-w-7xl mx-auto w-full">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
+                Employee Management
+              </h1>
+              <p className="text-white/60">Manage team members and assign roles</p>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-[#222]">
-          <button
-            onClick={() => setActiveTab('list')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'list'
-                ? 'text-white border-b-2 border-blue-500'
-                : 'text-white/60 hover:text-white'
-            }`}
-          >
-            Employees
-          </button>
-          <button
-            onClick={() => setActiveTab('add')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'add'
-                ? 'text-white border-b-2 border-blue-500'
-                : 'text-white/60 hover:text-white'
-            }`}
-          >
-            Add Employee
-          </button>
-          <button
-            onClick={() => setActiveTab('import')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'import'
-                ? 'text-white border-b-2 border-blue-500'
-                : 'text-white/60 hover:text-white'
-            }`}
-          >
-            Import XLS
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('audit')
-              // Load audit logs
-              loadAuditLogs()
-            }}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'audit'
-                ? 'text-white border-b-2 border-blue-500'
-                : 'text-white/60 hover:text-white'
-            }`}
-          >
-            Audit Log
-          </button>
+        <div className="flex gap-1 mb-8 bg-[#1a1a1a] p-1 rounded-lg w-fit">
+          {[
+            { id: 'list', label: 'Employees', icon: '👥' },
+            { id: 'add', label: 'Add Employee', icon: '➕' },
+            { id: 'import', label: 'Import XLS', icon: '📊' },
+            { id: 'audit', label: 'Audit Log', icon: '📋' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id as any)
+                if (tab.id === 'audit') loadAuditLogs()
+              }}
+              className={`px-6 py-2.5 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Content */}
         {activeTab === 'list' && (
-          <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-6">
-            <div className="space-y-2">
-              {employees.length === 0 ? (
-                <p className="text-white/60">No employees yet</p>
-              ) : (
-                employees.map((emp) => (
-                  <div
-                    key={emp.id}
-                    className="flex items-center justify-between p-3 bg-[#0d0d0d] rounded border border-[#222]"
-                  >
-                    <div className="flex-1">
-                      <p className="text-white font-medium">{emp.full_name || emp.email}</p>
-                      <p className="text-white/60 text-sm">{emp.email}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {emp.role === 'unassigned' ? (
-                        <span className="px-3 py-1 bg-gray-500/30 border border-gray-500/50 rounded-full text-xs font-semibold text-gray-300 capitalize">
-                          Unassigned
-                        </span>
-                      ) : (
-                        <RoleBadge role={emp.role as OrgRole} />
-                      )}
-                      <Select
-                        value={emp.role}
-                        onValueChange={(newRole: string | null) => {
-                          if (newRole) handleRoleChange(emp.id, newRole as OrgRole)
-                        }}
-                      >
-                        {emp.role === 'unassigned' && (
-                          <option value="unassigned">Select Role...</option>
-                        )}
-                        {isSuper ? (
-                          <>
-                            <option value="viewer">Viewer</option>
-                            <option value="employee">Employee</option>
-                            <option value="manager">Manager</option>
-                            <option value="admin">Admin</option>
-                            <option value="super_admin">Super Admin</option>
-                          </>
-                        ) : (
-                          <>
-                            <option value="viewer">Viewer</option>
-                            <option value="employee">Employee</option>
-                          </>
-                        )}
-                      </Select>
-                    </div>
-                  </div>
-                ))
-              )}
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white">All Employees</h2>
+              <span className="px-3 py-1 bg-purple-500/20 border border-purple-500/50 rounded-full text-sm text-purple-300">
+                {employees.length} total
+              </span>
             </div>
+
+            {employees.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="text-5xl mb-4">👤</div>
+                <p className="text-white/60 text-lg">No employees yet</p>
+                <p className="text-white/40 text-sm mt-2">Add your first employee to get started</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-[#333]">
+                      <th className="text-left py-4 px-4 font-semibold text-white/80">Name</th>
+                      <th className="text-left py-4 px-4 font-semibold text-white/80">Email</th>
+                      <th className="text-left py-4 px-4 font-semibold text-white/80">Current Role</th>
+                      <th className="text-left py-4 px-4 font-semibold text-white/80">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map((emp) => (
+                      <tr key={emp.id} className="border-b border-[#222] hover:bg-[#0d0d0d] transition-colors">
+                        <td className="py-4 px-4">
+                          <p className="text-white font-medium">{emp.full_name || 'N/A'}</p>
+                        </td>
+                        <td className="py-4 px-4">
+                          <p className="text-white/60 text-sm">{emp.email}</p>
+                        </td>
+                        <td className="py-4 px-4">
+                          {emp.role === 'unassigned' ? (
+                            <span className="px-3 py-1 bg-gray-500/20 border border-gray-500/40 rounded-full text-xs font-semibold text-gray-300">
+                              Unassigned
+                            </span>
+                          ) : (
+                            <RoleBadge role={emp.role as OrgRole} />
+                          )}
+                        </td>
+                        <td className="py-4 px-4">
+                          <Select
+                            value={emp.role}
+                            onValueChange={(newRole: string | null) => {
+                              if (newRole) handleRoleChange(emp.id, newRole as OrgRole)
+                            }}
+                          >
+                            {emp.role === 'unassigned' && (
+                              <option value="unassigned">Select Role...</option>
+                            )}
+                            {isSuper ? (
+                              <>
+                                <option value="viewer">Viewer</option>
+                                <option value="employee">Employee</option>
+                                <option value="manager">Manager</option>
+                                <option value="admin">Admin</option>
+                                <option value="super_admin">Super Admin</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="viewer">Viewer</option>
+                                <option value="employee">Employee</option>
+                              </>
+                            )}
+                          </Select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'add' && (
-          <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-6 max-w-md">
-            <form onSubmit={handleAddEmployee} className="space-y-4">
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-8 shadow-xl max-w-md">
+            <h2 className="text-xl font-semibold text-white mb-6">Add New Employee</h2>
+            <form onSubmit={handleAddEmployee} className="space-y-5">
               <div>
-                <Label htmlFor="email" className="text-white">
-                  Email
+                <Label htmlFor="email" className="text-white font-medium block mb-2">
+                  Email Address
                 </Label>
                 <Input
                   id="email"
@@ -287,11 +297,11 @@ export default function EmployeesPage() {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   required
-                  className="bg-[#0d0d0d] border-[#333] text-white"
+                  className="bg-[#0d0d0d] border-[#333] text-white placeholder:text-white/30 w-full"
                 />
               </div>
               <div>
-                <Label htmlFor="full_name" className="text-white">
+                <Label htmlFor="full_name" className="text-white font-medium block mb-2">
                   Full Name
                 </Label>
                 <Input
@@ -302,18 +312,18 @@ export default function EmployeesPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, full_name: e.target.value })
                   }
-                  className="bg-[#0d0d0d] border-[#333] text-white"
+                  className="bg-[#0d0d0d] border-[#333] text-white placeholder:text-white/30 w-full"
                 />
               </div>
               <div>
-                <Label htmlFor="role" className="text-white">
+                <Label htmlFor="role" className="text-white font-medium block mb-2">
                   Role
                 </Label>
                 <Select
                   value={formData.role}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, role: value as OrgRole })
-                  }
+                  onValueChange={(value: string | null) => {
+                    if (value) setFormData({ ...formData, role: value as OrgRole })
+                  }}
                 >
                   {isSuper ? (
                     <>
@@ -331,23 +341,25 @@ export default function EmployeesPage() {
                   )}
                 </Select>
               </div>
-              <Button
+              <button
                 type="submit"
                 disabled={loading}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg transition-all disabled:opacity-50"
               >
-                {loading ? 'Adding...' : 'Add Employee'}
-              </Button>
+                {loading ? 'Adding...' : '➕ Add Employee'}
+              </button>
             </form>
           </div>
         )}
 
         {activeTab === 'import' && (
-          <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-6 max-w-md">
-            <form onSubmit={handleImport} className="space-y-4">
-              <div>
-                <Label htmlFor="file" className="text-white">
-                  XLS File
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-8 shadow-xl max-w-md">
+            <h2 className="text-xl font-semibold text-white mb-6">Import Employees</h2>
+            <form onSubmit={handleImport} className="space-y-5">
+              <div className="border-2 border-dashed border-[#333] rounded-lg p-6 text-center hover:border-purple-500/50 transition-colors">
+                <div className="text-4xl mb-3">📄</div>
+                <Label htmlFor="file" className="text-white font-medium block mb-2">
+                  Choose XLS File
                 </Label>
                 <Input
                   id="file"
@@ -355,62 +367,60 @@ export default function EmployeesPage() {
                   accept=".xls,.xlsx"
                   onChange={(e) => setImportFile(e.target.files?.[0] || null)}
                   required
-                  className="bg-[#0d0d0d] border-[#333] text-white"
+                  className="bg-[#0d0d0d] border-[#333] text-white w-full"
                 />
-                <p className="text-white/60 text-sm mt-2">
+                <p className="text-white/60 text-sm mt-3">
                   File should have columns: email, full_name, role
                 </p>
               </div>
-              <Button
+              <button
                 type="submit"
                 disabled={loading || !importFile}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-lg transition-all disabled:opacity-50"
               >
-                {loading ? 'Importing...' : 'Import Employees'}
-              </Button>
+                {loading ? 'Importing...' : '📊 Import Employees'}
+              </button>
             </form>
           </div>
         )}
 
         {activeTab === 'audit' && (
-          <div className="bg-[#1a1a1a] border border-[#222] rounded-lg p-6">
-            <h3 className="text-white font-semibold mb-4">Role Change Audit Log</h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {auditLogs.length === 0 ? (
+          <div className="bg-[#1a1a1a] border border-[#333] rounded-xl p-6 shadow-xl">
+            <h2 className="text-xl font-semibold text-white mb-6">Role Change History</h2>
+            {auditLogs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="text-5xl mb-4">📋</div>
                 <p className="text-white/60">No role changes yet</p>
-              ) : (
-                auditLogs.map((log: any) => (
-                  <div
-                    key={log.id}
-                    className="p-3 bg-[#0d0d0d] rounded border border-[#222] text-xs"
-                  >
-                    <div className="flex justify-between items-start gap-2">
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {auditLogs.map((log: any) => (
+                  <div key={log.id} className="p-4 bg-[#0d0d0d] border border-[#222] rounded-lg hover:border-[#333] transition-colors">
+                    <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
-                        <p className="text-white font-medium">
-                          {log.user?.email}
-                        </p>
-                        <p className="text-white/60 capitalize">
+                        <p className="text-white font-medium">{log.user?.email}</p>
+                        <p className="text-white/60 text-sm capitalize mt-1">
                           {log.action_type.replace(/_/g, ' ')}
                         </p>
                         {log.old_role && (
-                          <p className="text-white/60 mt-1">
+                          <p className="text-purple-300 text-sm mt-2">
                             {log.old_role} → {log.new_role}
                           </p>
                         )}
                         {log.team?.name && (
-                          <p className="text-white/60 mt-1">
+                          <p className="text-blue-300 text-sm mt-1">
                             Team: {log.team.name}
                           </p>
                         )}
                       </div>
-                      <p className="text-white/40 whitespace-nowrap">
+                      <p className="text-white/40 text-xs whitespace-nowrap">
                         {new Date(log.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
