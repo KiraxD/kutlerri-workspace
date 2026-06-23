@@ -1,8 +1,11 @@
-import { login, signup } from './actions'
-import { Button } from '@/components/ui/button'
+import { login } from './actions'
+import { SubmitButton } from '@/components/submit-button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default async function LoginPage(props: { searchParams: Promise<{ message?: string }> }) {
   const searchParams = await props.searchParams;
@@ -30,12 +33,12 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
             <Input id="password" name="password" type="password" required />
           </div>
           <div className="flex flex-col gap-2 pt-2">
-            <Button type="submit" className="w-full">
+            <SubmitButton className="w-full" pendingText="Signing in...">
               Sign In
-            </Button>
-            <Button formAction={signup} type="submit" variant="outline" className="w-full">
+            </SubmitButton>
+            <Link href="/signup" className={cn(buttonVariants({ variant: "outline" }), "w-full")}>
               Create an account
-            </Button>
+            </Link>
           </div>
         </form>
       </div>

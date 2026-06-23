@@ -10,7 +10,7 @@ export default async function InboxPage() {
   // Fetch notifications that are not archived
   const { data: notifications, error } = await supabase
     .from('notifications')
-    .select('*, issue:issues(*), actor:profiles(*)')
+    .select('*, issue:issues(*), actor:profiles!actor_id(*)')
     .eq('user_id', user.id)
     .is('archived_at', null)
     .order('created_at', { ascending: false })
