@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Image from 'next/image'
 
-export default function LoginPage() {
+export default async function LoginPage(props: { searchParams: Promise<{ message?: string }> }) {
+  const searchParams = await props.searchParams;
+
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-6">
@@ -14,6 +16,11 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">Enter your email to sign in to your account</p>
         </div>
         <form className="space-y-4">
+          {searchParams?.message && (
+            <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md text-center">
+              {searchParams.message}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" placeholder="m@example.com" required />
@@ -23,10 +30,10 @@ export default function LoginPage() {
             <Input id="password" name="password" type="password" required />
           </div>
           <div className="flex flex-col gap-2 pt-2">
-            <Button formAction={login} className="w-full">
+            <Button formAction={login} type="submit" className="w-full">
               Sign In
             </Button>
-            <Button formAction={signup} variant="outline" className="w-full">
+            <Button formAction={signup} type="submit" variant="outline" className="w-full">
               Create an account
             </Button>
           </div>
