@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -33,9 +35,13 @@ export function Sidebar({ userName, userEmail }: { userName: string | null; user
     <aside className="w-[240px] flex-shrink-0 border-r border-border bg-sidebar flex flex-col z-20 shadow-sm">
       {/* Workspace Header */}
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-base shadow-sm shrink-0">
-          K
-        </div>
+        <Image
+          src="/images/icon.png"
+          alt="Kutlerri"
+          width={32}
+          height={32}
+          className="rounded-lg shrink-0 shadow-sm"
+        />
         <div className="min-w-0">
           <span className="text-sm font-bold font-heading tracking-wide truncate block">Kutlerri</span>
           <span className="text-[10px] text-muted-foreground truncate block">{userEmail}</span>
