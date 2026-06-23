@@ -199,42 +199,49 @@ export default function TeamsPage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-8 bg-gradient-to-br from-[#0d0d0d] to-[#1a1a1a]">
-      <div className="max-w-7xl mx-auto w-full">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent mb-2">
-            Team Management
-          </h1>
-          <p className="text-white/60">Organize employees and assign team-level roles</p>
+    <div className="flex flex-col h-full bg-background overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-gradient-to-r from-blue-50 to-background">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+            <Briefcase className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold font-heading">Team Management</h1>
+            <p className="text-xs text-muted-foreground">Organize employees and assign team-level roles</p>
+          </div>
         </div>
+      </div>
+
+      <div className="flex-1 flex flex-col p-8">
+        <div className="max-w-6xl mx-auto w-full">
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Teams List Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-xl shadow-xl overflow-hidden sticky top-8">
-              <div className="p-4 border-b border-[#333] bg-gradient-to-r from-purple-500/10 to-blue-500/10">
-                <h3 className="text-white font-semibold flex items-center gap-2">
+            <div className="bg-card border border-border rounded-lg overflow-hidden sticky top-8">
+              <div className="p-4 border-b border-border bg-muted/30">
+                <h3 className="text-foreground font-semibold flex items-center gap-2">
                   <span>🏢</span> Your Teams
                 </h3>
               </div>
               <div className="p-3 max-h-96 overflow-y-auto">
                 {teams.length === 0 ? (
-                  <p className="text-white/40 text-sm py-4 text-center">No teams yet</p>
+                  <p className="text-muted-foreground text-sm py-4 text-center">No teams yet</p>
                 ) : (
                   <div className="space-y-2">
                     {teams.map((team) => (
                       <button
                         key={team.id}
                         onClick={() => setSelectedTeam(team)}
-                        className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 ${
+                        className={`w-full text-left px-4 py-3 rounded transition-all duration-200 ${
                           selectedTeam?.id === team.id
-                            ? 'bg-gradient-to-r from-purple-500/30 to-blue-500/30 border border-purple-500/50 text-white'
-                            : 'border border-transparent text-white/70 hover:text-white hover:bg-white/5'
+                            ? 'bg-primary/10 border border-primary/30 text-foreground'
+                            : 'border border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
                         }`}
                       >
-                        <p className="font-medium">{team.name}</p>
-                        <p className="text-xs text-white/50 mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
+                        <p className="font-medium text-sm">{team.name}</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">{members.length} member{members.length !== 1 ? 's' : ''}</p>
                       </button>
                     ))}
                   </div>
@@ -246,31 +253,32 @@ export default function TeamsPage() {
           {/* Team Members */}
           <div className="lg:col-span-3">
             {selectedTeam ? (
-              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl shadow-xl overflow-hidden">
+              <div className="bg-card border border-border rounded-lg overflow-hidden">
                 {/* Team Header */}
-                <div className="p-6 border-b border-[#333] bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+                <div className="p-6 border-b border-border bg-muted/30">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-2xl font-bold text-white">{selectedTeam.name}</h2>
-                      <p className="text-white/60 text-sm mt-1">{members.length} team member{members.length !== 1 ? 's' : ''}</p>
+                      <h2 className="text-2xl font-bold text-foreground">{selectedTeam.name}</h2>
+                      <p className="text-muted-foreground text-sm mt-1">{members.length} team member{members.length !== 1 ? 's' : ''}</p>
                     </div>
-                    <button
+                    <Button
                       onClick={() => setShowAddMember(!showAddMember)}
-                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+                      size="sm"
+                      className="gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       Add Member
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
                 {/* Add Member Form */}
                 {showAddMember && (
-                  <div className="p-6 border-b border-[#333] bg-[#0d0d0d]">
-                    <h3 className="text-white font-semibold mb-4">Add Team Member</h3>
+                  <div className="p-6 border-b border-border bg-muted/20">
+                    <h3 className="text-foreground font-semibold mb-4">Add Team Member</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="employee" className="text-white font-medium block mb-2">
+                        <Label htmlFor="employee" className="text-foreground font-medium block mb-2">
                           Select Employee
                         </Label>
                         <Select
@@ -290,7 +298,7 @@ export default function TeamsPage() {
                         </Select>
                       </div>
                       <div>
-                        <Label htmlFor="role" className="text-white font-medium block mb-2">
+                        <Label htmlFor="role" className="text-foreground font-medium block mb-2">
                           Team Role
                         </Label>
                         <Select
@@ -308,19 +316,20 @@ export default function TeamsPage() {
                       </div>
                     </div>
                     <div className="flex gap-3 mt-4">
-                      <button
+                      <Button
                         onClick={handleAddMember}
                         disabled={loading || !selectedEmployee}
-                        className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-lg transition-all disabled:opacity-50"
+                        size="sm"
                       >
                         {loading ? 'Adding...' : '✓ Add Member'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => setShowAddMember(false)}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-all"
+                        variant="outline"
+                        size="sm"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -330,19 +339,19 @@ export default function TeamsPage() {
                   {members.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12">
                       <div className="text-5xl mb-4">👥</div>
-                      <p className="text-white/60">No members in this team</p>
-                      <p className="text-white/40 text-sm mt-2">Add your first team member to get started</p>
+                      <p className="text-muted-foreground">No members in this team</p>
+                      <p className="text-muted-foreground/70 text-sm mt-2">Add your first team member to get started</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {members.map((member) => (
                         <div
                           key={member.id}
-                          className="flex items-center justify-between p-4 bg-[#0d0d0d] border border-[#222] rounded-lg hover:border-[#333] transition-all"
+                          className="flex items-center justify-between p-4 bg-muted/20 border border-border rounded hover:bg-muted/40 transition-all"
                         >
                           <div className="flex-1">
-                            <p className="text-white font-medium">{member.full_name || 'N/A'}</p>
-                            <p className="text-white/60 text-sm">{member.email}</p>
+                            <p className="text-foreground font-medium">{member.full_name || 'N/A'}</p>
+                            <p className="text-muted-foreground text-sm">{member.email}</p>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-center">
@@ -359,7 +368,7 @@ export default function TeamsPage() {
                             </div>
                             <button
                               onClick={() => handleRemoveMember(member.id)}
-                              className="p-2 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-all text-red-400 hover:text-red-300"
+                              className="p-2 hover:bg-destructive/10 border border-destructive/20 hover:border-destructive/40 rounded transition-all text-destructive hover:text-destructive"
                               title="Remove member"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -372,13 +381,14 @@ export default function TeamsPage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-[#1a1a1a] border border-[#333] rounded-xl shadow-xl p-12 text-center">
+              <div className="bg-card border border-border rounded-lg p-12 text-center">
                 <div className="text-6xl mb-4">🏢</div>
-                <p className="text-white/60 text-lg">Select a team to view and manage members</p>
-                <p className="text-white/40 text-sm mt-2">Choose a team from the list on the left to get started</p>
+                <p className="text-muted-foreground text-lg">Select a team to view and manage members</p>
+                <p className="text-muted-foreground/70 text-sm mt-2">Choose a team from the list on the left to get started</p>
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
     </div>
