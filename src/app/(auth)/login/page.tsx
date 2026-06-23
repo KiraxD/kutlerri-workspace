@@ -15,7 +15,7 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
           <h1 className="text-2xl font-semibold tracking-tight">Welcome to Kutlerri</h1>
           <p className="text-sm text-muted-foreground">Enter your email to sign in to your account</p>
         </div>
-        <form className="space-y-4">
+        <form className="space-y-4" action={login}>
           {searchParams?.message && (
             <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md text-center">
               {searchParams.message}
@@ -30,7 +30,7 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
             <Input id="password" name="password" type="password" required />
           </div>
           <div className="flex flex-col gap-2 pt-2">
-            <Button formAction={login} type="submit" className="w-full">
+            <Button type="submit" className="w-full">
               Sign In
             </Button>
             <Button formAction={signup} type="submit" variant="outline" className="w-full">
