@@ -25,16 +25,16 @@ export function CommandPalette() {
         setOpen((open) => !open)
       }
       
-      // Create issue shortcut: C
+      // Create task shortcut: C
       if (e.key === 'c' && e.target === document.body && !e.metaKey && !e.ctrlKey) {
         e.preventDefault()
-        router.push('/issues/new')
+        router.push('/tasks/new')
       }
 
       // Assign, Edit, Move
       if (['a', 'e', 'm'].includes(e.key) && e.target === document.body && !e.metaKey && !e.ctrlKey) {
         e.preventDefault()
-        console.log(`Shortcut ${e.key.toUpperCase()} pressed. (Requires issue selection context)`)
+        console.log(`Shortcut ${e.key.toUpperCase()} pressed. (Requires task selection context)`)
       }
     }
 
@@ -48,21 +48,21 @@ export function CommandPalette() {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Suggestions">
-          <CommandItem onSelect={() => { setOpen(false); router.push('/issues/new') }}>
+          <CommandItem onSelect={() => { setOpen(false); router.push('/tasks/new') }}>
             <Plus className="mr-2 h-4 w-4" />
-            <span>Create Issue</span>
+            <span>Create Task</span>
             <span className="ml-auto text-xs tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded">C</span>
           </CommandItem>
           <CommandItem onSelect={() => { setOpen(false); router.push('/search') }}>
             <Search className="mr-2 h-4 w-4" />
-            <span>Search Issues...</span>
+            <span>Search Tasks...</span>
           </CommandItem>
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Navigation">
-          <CommandItem onSelect={() => { setOpen(false); router.push('/my-issues') }}>
+          <CommandItem onSelect={() => { setOpen(false); router.push('/my-tasks') }}>
             <FileText className="mr-2 h-4 w-4" />
-            <span>My Issues</span>
+            <span>My Tasks</span>
           </CommandItem>
           <CommandItem onSelect={() => { setOpen(false); router.push('/settings') }}>
             <Settings className="mr-2 h-4 w-4" />
@@ -73,3 +73,4 @@ export function CommandPalette() {
     </CommandDialog>
   )
 }
+

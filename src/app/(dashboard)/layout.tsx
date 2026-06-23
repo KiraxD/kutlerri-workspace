@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Inbox,
   LayoutGrid,
@@ -9,7 +10,13 @@ import {
   Target,
   Route,
   CheckCircle2,
-  MoreHorizontal
+  MoreHorizontal,
+  Home,
+  Layers,
+  Compass,
+  Briefcase,
+  Database,
+  Lock
 } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/server'
@@ -37,19 +44,20 @@ export default async function DashboardLayout({
       {/* Sidebar */}
       <aside className="w-[240px] flex-shrink-0 border-r border-border bg-sidebar flex flex-col z-20 shadow-xl">
         {/* Workspace Switcher / Profile */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-border hover:bg-muted/50 cursor-pointer">
-          <div className="flex items-center justify-center w-6 h-6 rounded bg-primary text-primary-foreground font-heading font-bold text-xs">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border hover:bg-muted/50 cursor-pointer">
+          <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary text-primary-foreground font-bold text-lg shadow-sm">
             K
           </div>
-          <span className="text-sm font-semibold font-heading tracking-wide truncate">Kutlerri Workspace</span>
+          <span className="text-lg font-bold font-heading tracking-wide truncate">Kutlerri</span>
         </div>
 
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto py-2">
           <div className="px-3 mb-4 space-y-0.5">
             <NavItem href="/search" icon={<Search className="w-4 h-4" />} label="Search" shortcut="Ctrl K" />
+            <NavItem href="/" icon={<Home className="w-4 h-4" />} label="Home" />
             <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />
-            <NavItem href="/my-issues" icon={<CheckCircle2 className="w-4 h-4" />} label="My Issues" />
+            <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
           </div>
 
           <div className="px-3 mb-4">
@@ -65,9 +73,12 @@ export default async function DashboardLayout({
               <MoreHorizontal className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-pointer" />
             </div>
             <div className="space-y-0.5">
-              <NavItem href="/projects" icon={<LayoutGrid className="w-4 h-4" />} label="Projects" />
+              <NavItem href="/initiatives" icon={<Compass className="w-4 h-4" />} label="Initiatives" />
+              <NavItem href="/epics" icon={<Layers className="w-4 h-4" />} label="Epics" />
+              <NavItem href="/projects" icon={<Briefcase className="w-4 h-4" />} label="Projects" />
               <NavItem href="/cycles" icon={<Target className="w-4 h-4" />} label="Cycles" />
               <NavItem href="/roadmap" icon={<Route className="w-4 h-4" />} label="Roadmap" />
+              <NavItem href="/vault" icon={<Lock className="w-4 h-4" />} label="Vault" />
               <NavItem href="/teams" icon={<Users className="w-4 h-4" />} label="Teams" />
             </div>
           </div>

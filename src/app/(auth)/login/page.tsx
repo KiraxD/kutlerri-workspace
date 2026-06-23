@@ -14,7 +14,9 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
     <div className="flex h-screen w-full items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center space-y-2 text-center mb-6">
-          <Image src="/images/logo.webp" alt="Kutlerri Logo" width={140} height={40} className="mb-4" />
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-primary-foreground font-bold text-2xl shadow-sm mb-4">
+            K
+          </div>
           <h1 className="text-2xl font-semibold tracking-tight">Welcome to Kutlerri</h1>
           <p className="text-sm text-muted-foreground">Enter your email to sign in to your account</p>
         </div>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle, ArrowDown, ArrowRight, ArrowUp, Circle, CircleDashed, CheckCircle2, ChevronRight, Copy } from 'lucide-react'
 
 // Note: In Next.js 15, `params` is a Promise.
-export default async function IssueDetailPage({
+export default async function TaskDetailPage({
   params,
 }: {
   params: Promise<{ identifier: string }>
@@ -14,29 +14,29 @@ export default async function IssueDetailPage({
   const { identifier } = await params
   const supabase = await createClient()
 
-  const { data: issue, error } = await supabase
-    .from('issues')
+  const { data: task, error } = await supabase
+    .from('tasks')
     .select(`
       *,
       creator:profiles!creator_id(*),
       assignee:profiles!assignee_id(*),
       team:teams(*),
-      relations_out:issue_relations!issue_relations_issue_id_fkey(
+      relations_out:task_relations!task_relations_task_id_fkey(
         relation_type,
-        related_issue:issues!issue_relations_related_issue_id_fkey(identifier, title, status)
+        related_task:tasks!task_relations_related_task_id_fkey(identifier, title, status)
       ),
-      relations_in:issue_relations!issue_relations_related_issue_id_fkey(
+      relations_in:task_relations!task_relations_related_task_id_fkey(
         relation_type,
-        issue:issues!issue_relations_issue_id_fkey(identifier, title, status)
+        task:tasks!task_relations_task_id_fkey(identifier, title, status)
       )
     `)
     .eq('identifier', identifier)
     .single()
 
-  if (error || !issue) {
+  if (error || !task) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
-        Issue not found
+        Task not found
       </div>
     )
   }
@@ -45,9 +45,9 @@ export default async function IssueDetailPage({
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <div className="flex items-center gap-2 px-6 py-4 border-b border-border text-sm text-muted-foreground">
-        <span className="font-medium hover:text-foreground cursor-pointer">{issue.team?.identifier}</span>
+        <span className="font-medium hover:text-foreground cursor-pointer">{task.team?.identifier}</span>
         <ChevronRight className="w-4 h-4" />
-        <span className="font-mono uppercase">{issue.identifier}</span>
+        <span className="font-mono uppercase">{task.identifier}</span>
         <Button variant="ghost" size="icon" className="h-6 w-6 ml-2">
           <Copy className="w-3 h-3" />
         </Button>
@@ -57,11 +57,11 @@ export default async function IssueDetailPage({
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-3xl">
-            <h1 className="text-2xl font-semibold mb-4 text-foreground">{issue.title}</h1>
+            <h1 className="text-2xl font-semibold mb-4 text-foreground">{task.title}</h1>
             
             <div className="prose prose-sm dark:prose-invert max-w-none mb-8 text-foreground/90">
-              {issue.description ? (
-                <p className="whitespace-pre-wrap">{issue.description}</p>
+              {task.description ? (
+                <p className="whitespace-pre-wrap">{task.description}</p>
               ) : (
                 <p className="text-muted-foreground italic">No description provided.</p>
               )}
@@ -87,8 +87,8 @@ export default async function IssueDetailPage({
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground w-24">Status</span>
                 <div className="flex items-center gap-2 flex-1 justify-start">
-                  <StatusIcon status={issue.status} />
-                  <span className="capitalize">{issue.status.replace('_', ' ')}</span>
+                  <StatusIcon status={task.status} />
+                  <span className="capitalize">{task.status.replace('_', ' ')}</span>
                 </div>
               </div>
 
@@ -96,25 +96,25 @@ export default async function IssueDetailPage({
                 <span className="text-muted-foreground w-24">Assignee</span>
                 <div className="flex items-center gap-2 flex-1 justify-start">
                   <Avatar className="h-5 w-5">
-                    <AvatarFallback className="text-[10px]">{issue.assignee ? issue.assignee.email[0].toUpperCase() : 'U'}</AvatarFallback>
+                    <AvatarFallback className="text-[10px]">{task.assignee ? task.assignee.email[0].toUpperCase() : 'U'}</AvatarFallback>
                   </Avatar>
-                  <span>{issue.assignee?.full_name || issue.assignee?.email || 'Unassigned'}</span>
+                  <span>{task.assignee?.full_name || task.assignee?.email || 'Unassigned'}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground w-24">Priority</span>
                 <div className="flex items-center gap-2 flex-1 justify-start">
-                  <PriorityIcon priority={issue.priority} />
-                  <span className="capitalize">{issue.priority.replace('_', ' ')}</span>
+                  <PriorityIcon priority={task.priority} />
+                  <span className="capitalize">{task.priority.replace('_', ' ')}</span>
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground w-24">Estimate</span>
                 <div className="flex items-center gap-2 flex-1 justify-start">
-                  {issue.estimate ? (
-                    <Badge variant="outline" className="font-mono">{issue.estimate}</Badge>
+                  {task.estimate ? (
+                    <Badge variant="outline" className="font-mono">{task.estimate}</Badge>
                   ) : (
                     <span className="text-muted-foreground">None</span>
                   )}
@@ -126,19 +126,19 @@ export default async function IssueDetailPage({
           <div className="space-y-4">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Relations</h3>
             <div className="text-sm flex flex-col gap-2">
-              {(!issue.relations_out || issue.relations_out.length === 0) && (!issue.relations_in || issue.relations_in.length === 0) ? (
+              {(!task.relations_out || task.relations_out.length === 0) && (!task.relations_in || task.relations_in.length === 0) ? (
                 <div className="text-muted-foreground">No relations added.</div>
               ) : (
                 <>
-                  {issue.relations_out?.map((rel: any, i: number) => (
+                  {task.relations_out?.map((rel: any, i: number) => (
                     <div key={`out-${i}`} className="flex flex-col border border-border p-2 rounded-md bg-background">
                       <span className="text-xs text-muted-foreground capitalize mb-1">{rel.relation_type.replace('_', ' ')}</span>
-                      <a href={`/issue/${rel.related_issue.identifier}`} className="font-medium hover:underline text-foreground truncate">
-                        {rel.related_issue.identifier} <span className="text-muted-foreground font-normal">{rel.related_issue.title}</span>
+                      <a href={`/task/${rel.related_task.identifier}`} className="font-medium hover:underline text-foreground truncate">
+                        {rel.related_task.identifier} <span className="text-muted-foreground font-normal">{rel.related_task.title}</span>
                       </a>
                     </div>
                   ))}
-                  {issue.relations_in?.map((rel: any, i: number) => (
+                  {task.relations_in?.map((rel: any, i: number) => (
                     <div key={`in-${i}`} className="flex flex-col border border-border p-2 rounded-md bg-background">
                       <span className="text-xs text-muted-foreground capitalize mb-1">
                         {rel.relation_type === 'blocks' ? 'blocked by' : 
@@ -146,8 +146,8 @@ export default async function IssueDetailPage({
                          rel.relation_type === 'child' ? 'parent' : 
                          `is ${rel.relation_type.replace('_', ' ')} of`}
                       </span>
-                      <a href={`/issue/${rel.issue.identifier}`} className="font-medium hover:underline text-foreground truncate">
-                        {rel.issue.identifier} <span className="text-muted-foreground font-normal">{rel.issue.title}</span>
+                      <a href={`/task/${rel.task.identifier}`} className="font-medium hover:underline text-foreground truncate">
+                        {rel.task.identifier} <span className="text-muted-foreground font-normal">{rel.task.title}</span>
                       </a>
                     </div>
                   ))}

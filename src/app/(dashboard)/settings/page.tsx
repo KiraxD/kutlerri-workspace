@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Settings as SettingsIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { signOut } from './actions'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -39,15 +40,15 @@ export default async function SettingsPage() {
                   <span className="text-xs text-muted-foreground">Manage your app appearance</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  (Managed via system settings or quick menu)
+                  Light (Default)
                 </div>
               </div>
             </div>
           </section>
 
           <section className="pt-8">
-            <form action="/auth/signout" method="POST">
-              <Button variant="destructive">Sign Out</Button>
+            <form action={signOut}>
+              <Button type="submit" variant="destructive">Sign Out</Button>
             </form>
           </section>
 

@@ -29,7 +29,7 @@ export async function updateSession(request: NextRequest) {
 
   // Do not run code between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+  // tasks with users being randomly logged out.
 
   // IMPORTANT: DO NOT USE getSession AS IT DOES NOT VALIDATE THE JWT.
   // ALWAYS USE getUser FOR AUTHENTICATION.
@@ -51,3 +51,4 @@ export async function updateSession(request: NextRequest) {
 
   return supabaseResponse
 }
+

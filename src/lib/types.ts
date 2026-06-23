@@ -1,7 +1,7 @@
-export type IssueStatus = 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'done' | 'canceled'
-export type IssuePriority = 'no_priority' | 'urgent' | 'high' | 'medium' | 'low'
+export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'done' | 'canceled'
+export type TaskPriority = 'no_priority' | 'urgent' | 'high' | 'medium' | 'low'
 
-export interface Issue {
+export interface Task {
   id: string
   team_id: string
   project_id: string | null
@@ -12,8 +12,8 @@ export interface Issue {
   number: number
   title: string
   description: string | null
-  status: IssueStatus
-  priority: IssuePriority
+  status: TaskStatus
+  priority: TaskPriority
   estimate: number | null
   created_at: string
   updated_at: string
@@ -37,3 +37,4 @@ export interface Profile {
   created_at: string
   updated_at: string
 }
+

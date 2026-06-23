@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
-export async function createIssue(formData: FormData) {
+export async function createTask(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -22,8 +22,8 @@ export async function createIssue(formData: FormData) {
     throw new Error('Title and Team are required')
   }
 
-  const { data: issue, error } = await supabase
-    .from('issues')
+  const { data: task, error } = await supabase
+    .from('tasks')
     .insert({
       title,
       description,
@@ -37,10 +37,11 @@ export async function createIssue(formData: FormData) {
     .single()
 
   if (error) {
-    console.error('Error creating issue:', error)
-    throw new Error('Failed to create issue')
+    console.error('Error creating task:', error)
+    throw new Error('Failed to create task')
   }
 
-  revalidatePath('/my-issues')
-  redirect(`/issue/${issue.identifier}`)
+  revalidatePath('/my-tasks')
+  redirect(`/task/${task.identifier}`)
 }
+

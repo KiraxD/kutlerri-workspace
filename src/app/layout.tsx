@@ -16,7 +16,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: 'Kutlerri Workspace',
-  description: 'Manage issues, cycles, and teams with efficiency.',
+  description: 'Manage tasks, cycles, and teams with efficiency.',
 }
 
 export default function RootLayout({
@@ -25,11 +25,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${spaceGrotesk.variable} ${montserrat.variable} h-full antialiased dark`}>
+    <html lang="en" suppressHydrationWarning className={`${spaceGrotesk.variable} ${montserrat.variable} h-full antialiased`}>
+      {/* Force light mode: clear any persisted dark theme from localStorage */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{localStorage.setItem('theme','light')}catch(e){}})()` }} />
+      </head>
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
+          forcedTheme="light"
           enableSystem={false}
           disableTransitionOnChange
         >
@@ -41,3 +46,4 @@ export default function RootLayout({
     </html>
   )
 }
+

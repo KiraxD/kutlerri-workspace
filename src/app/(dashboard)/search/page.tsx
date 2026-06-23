@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Search as SearchIcon } from 'lucide-react'
-import { IssueList } from '@/components/issues/issue-list'
-import { Issue } from '@/lib/types'
+import { TaskList } from '@/components/tasks/task-list'
+import { Task } from '@/lib/types'
 
 export default async function SearchPage({
   searchParams,
@@ -22,19 +22,19 @@ export default async function SearchPage({
 
   const teamIds = teamMembers?.map(tm => tm.team_id) || []
 
-  let issues: any[] = []
+  let tasks: any[] = []
 
   if (q && teamIds.length > 0) {
     // Simple text search on title or identifier
     const { data } = await supabase
-      .from('issues')
+      .from('tasks')
       .select('*')
       .in('team_id', teamIds)
       .or(`title.ilike.%${q}%,identifier.ilike.%${q}%`)
       .order('updated_at', { ascending: false })
       .limit(50)
       
-    if (data) issues = data
+    if (data) tasks = data
   }
 
   return (
@@ -54,7 +54,7 @@ export default async function SearchPage({
               type="text"
               name="q"
               defaultValue={q || ''}
-              placeholder="Search issues by title or ID (e.g. KT-12)..."
+              placeholder="Search tasks by title or ID (e.g. KT-12)..."
               className="w-full pl-10 pr-4 py-2 bg-muted/20 border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring"
               autoFocus
             />
@@ -63,7 +63,7 @@ export default async function SearchPage({
 
         {q && (
           <div className="mb-4 text-sm text-muted-foreground">
-            {issues.length} {issues.length === 1 ? 'result' : 'results'} for "{q}"
+            {tasks.length} {tasks.length === 1 ? 'result' : 'results'} for "{q}"
           </div>
         )}
 
@@ -73,10 +73,11 @@ export default async function SearchPage({
               <p>Type to start searching across your workspace.</p>
             </div>
           ) : (
-            <IssueList issues={issues as unknown as Issue[]} />
+            <TaskList tasks={tasks as unknown as Task[]} />
           )}
         </div>
       </div>
     </div>
   )
 }
+
