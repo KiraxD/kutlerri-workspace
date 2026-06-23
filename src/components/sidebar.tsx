@@ -9,15 +9,23 @@ import {
   Briefcase, Lock, MoreHorizontal,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
 
 interface NavItemProps {
   href: string
   icon: React.ReactNode
   label: string
   shortcut?: string
+  visible?: boolean
 }
 
-export function Sidebar({ userEmail }: { userName: string | null; userEmail: string | null }) {
+interface SidebarProps {
+  userName: string | null
+  userEmail: string | null
+  role?: OrgRole | null
+}
+
+export function Sidebar({ userName, userEmail, role }: SidebarProps) {
   return (
     <aside className="w-[240px] flex-shrink-0 flex flex-col z-20 bg-[#0d0d0d] border-r border-[#222]" style={{ height: '100vh' }}>
 
@@ -39,39 +47,81 @@ export function Sidebar({ userEmail }: { userName: string | null; userEmail: str
 
         {/* Main */}
         <div className="px-2 mb-1 space-y-0.5">
-          <NavItem href="/search" icon={<Search className="w-4 h-4" />} label="Search" shortcut="⌘K" />
-          <NavItem href="/home" icon={<Home className="w-4 h-4" />} label="Home" />
-          <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />
-          <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
+          {isNavItemVisible(role, 'search') && (
+            <NavItem href="/search" icon={<Search className="w-4 h-4" />} label="Search" shortcut="⌘K" />
+          )}
+          {isNavItemVisible(role, 'home') && (
+            <NavItem href="/home" icon={<Home className="w-4 h-4" />} label="Home" />
+          )}
+          {isNavItemVisible(role, 'inbox') && (
+            <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />
+          )}
+          {isNavItemVisible(role, 'my-tasks') && (
+            <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
+          )}
         </div>
 
         {/* Divider */}
-        <div className="mx-4 my-2 border-t border-[#222]" />
+        {isNavItemVisible(role, 'favorites') && (
+          <div className="mx-4 my-2 border-t border-[#222]" />
+        )}
 
         {/* Your Space */}
-        <div className="px-2 mb-1">
-          <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Your Space</p>
-          <div className="space-y-0.5">
-            <NavItem href="/favorites" icon={<Star className="w-4 h-4" />} label="Favorites" />
+        {isNavItemVisible(role, 'favorites') && (
+          <div className="px-2 mb-1">
+            <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Your Space</p>
+            <div className="space-y-0.5">
+              <NavItem href="/favorites" icon={<Star className="w-4 h-4" />} label="Favorites" />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Divider */}
-        <div className="mx-4 my-2 border-t border-[#222]" />
+        {(isNavItemVisible(role, 'initiatives') ||
+          isNavItemVisible(role, 'epics') ||
+          isNavItemVisible(role, 'projects') ||
+          isNavItemVisible(role, 'cycles') ||
+          isNavItemVisible(role, 'roadmap') ||
+          isNavItemVisible(role, 'vault') ||
+          isNavItemVisible(role, 'teams')) && (
+          <div className="mx-4 my-2 border-t border-[#222]" />
+        )}
 
         {/* Workspace */}
-        <div className="px-2 mb-2">
-          <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Workspace</p>
-          <div className="space-y-0.5">
-            <NavItem href="/initiatives" icon={<Compass className="w-4 h-4" />} label="Initiatives" />
-            <NavItem href="/epics" icon={<Layers className="w-4 h-4" />} label="Epics" />
-            <NavItem href="/projects" icon={<Briefcase className="w-4 h-4" />} label="Projects" />
-            <NavItem href="/cycles" icon={<Target className="w-4 h-4" />} label="Cycles" />
-            <NavItem href="/roadmap" icon={<Route className="w-4 h-4" />} label="Roadmap" />
-            <NavItem href="/vault" icon={<Lock className="w-4 h-4" />} label="Vault" />
-            <NavItem href="/teams" icon={<Users className="w-4 h-4" />} label="Teams" />
+        {(isNavItemVisible(role, 'initiatives') ||
+          isNavItemVisible(role, 'epics') ||
+          isNavItemVisible(role, 'projects') ||
+          isNavItemVisible(role, 'cycles') ||
+          isNavItemVisible(role, 'roadmap') ||
+          isNavItemVisible(role, 'vault') ||
+          isNavItemVisible(role, 'teams')) && (
+          <div className="px-2 mb-2">
+            <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Workspace</p>
+            <div className="space-y-0.5">
+              {isNavItemVisible(role, 'initiatives') && (
+                <NavItem href="/initiatives" icon={<Compass className="w-4 h-4" />} label="Initiatives" />
+              )}
+              {isNavItemVisible(role, 'epics') && (
+                <NavItem href="/epics" icon={<Layers className="w-4 h-4" />} label="Epics" />
+              )}
+              {isNavItemVisible(role, 'projects') && (
+                <NavItem href="/projects" icon={<Briefcase className="w-4 h-4" />} label="Projects" />
+              )}
+              {isNavItemVisible(role, 'cycles') && (
+                <NavItem href="/cycles" icon={<Target className="w-4 h-4" />} label="Cycles" />
+              )}
+              {isNavItemVisible(role, 'roadmap') && (
+                <NavItem href="/roadmap" icon={<Route className="w-4 h-4" />} label="Roadmap" />
+              )}
+              {isNavItemVisible(role, 'vault') && (
+                <NavItem href="/vault" icon={<Lock className="w-4 h-4" />} label="Vault" />
+              )}
+              {isNavItemVisible(role, 'teams') && (
+                <NavItem href="/teams" icon={<Users className="w-4 h-4" />} label="Teams" />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
       </nav>
 
@@ -83,11 +133,13 @@ export function Sidebar({ userEmail }: { userName: string | null; userEmail: str
   )
 }
 
-function NavItem({ href, icon, label, shortcut }: NavItemProps) {
+function NavItem({ href, icon, label, shortcut, visible = true }: NavItemProps) {
   const pathname = usePathname()
   const isActive = href === '/home'
     ? pathname === '/home' || pathname === '/'
     : pathname === href || (pathname.startsWith(href + '/') && href !== '/')
+
+  if (!visible) return null
 
   return (
     <Link

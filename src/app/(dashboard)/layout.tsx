@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { CommandPalette } from '@/components/cmdk/command-palette'
 import { RealtimeProvider } from '@/components/realtime-provider'
 import { Sidebar } from '@/components/sidebar'
+import { getOrgRoleServer } from '@/lib/use-org-role'
 
 export default async function DashboardLayout({
   children,
@@ -23,6 +24,18 @@ export default async function DashboardLayout({
     .eq('id', user.id)
     .single()
 
+  // Get user's organization (first one they're a member of)
+  const { data: orgMembers } = await supabase
+    .from('organization_members')
+    .select('organization_id, role')
+    .eq('user_id', user.id)
+    .limit(1)
+
+  let userRole = null
+  if (orgMembers && orgMembers.length > 0) {
+    userRole = orgMembers[0].role
+  }
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground selection:bg-primary/30">
       <RealtimeProvider userId={user.id} />
@@ -30,6 +43,7 @@ export default async function DashboardLayout({
       <Sidebar
         userName={profile?.full_name ?? null}
         userEmail={profile?.email ?? user.email ?? null}
+        role={userRole}
       />
 
       {/* Main Content */}

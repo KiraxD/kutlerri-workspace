@@ -2,13 +2,31 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { verifyPermission } from '@/lib/auth-helpers'
 
 export async function createTeamAndOrg(formData: FormData) {
+  // This action allows creating a new org/team (for first-time setup)
+  // Only super_admin/admin can typically do this, but allow first org creation
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     throw new Error('Not authenticated')
+  }
+
+  // Check if user already has permission to create org/team
+  try {
+    await verifyPermission('createOrganization')
+  } catch {
+    // If not, check if this is their first organization
+    const { data: existingOrgs } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+    
+    if (existingOrgs && existingOrgs.length > 0) {
+      throw new Error('Permission denied: Only admins can create organizations')
+    }
   }
 
   const orgName = formData.get('orgName') as string
@@ -30,11 +48,11 @@ export async function createTeamAndOrg(formData: FormData) {
 
   if (orgError) throw new Error(orgError.message)
 
-  // 3. Add to Organization Members
+  // 3. Add to Organization Members as super_admin for first org
   await supabase.from('organization_members').insert({
     organization_id: org.id,
     user_id: user.id,
-    role: 'owner',
+    role: 'super_admin',
   })
 
   // 4. Create Team
