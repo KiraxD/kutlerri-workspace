@@ -184,7 +184,7 @@ const PERMISSIONS_MATRIX: Record<OrgRole, Record<string, boolean>> = {
     // User & Team Management
     inviteUsers: true,
     removeUsers: false,
-    manageUserRoles: false,
+    manageUserRoles: true,
     manageTeams: true,
     createTeam: true,
     deleteTeam: false,
@@ -414,6 +414,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'roadmap',
     'vault',
     'teams',
+    'employees',
     'settings',
   ],
   admin: [
@@ -457,7 +458,25 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
  * @returns true if the nav item should be visible
  */
 export function isNavItemVisible(role: OrgRole | null | undefined, navItem: string): boolean {
-  if (!role) return false
+  // If no role yet, show all items (full access until org role assigned)
+  if (!role) {
+    const defaultItems = [
+      'search',
+      'home',
+      'inbox',
+      'my-tasks',
+      'favorites',
+      'initiatives',
+      'epics',
+      'projects',
+      'cycles',
+      'roadmap',
+      'vault',
+      'teams',
+      'settings',
+    ]
+    return defaultItems.includes(navItem)
+  }
   return NAV_VISIBILITY[role]?.includes(navItem) ?? false
 }
 
@@ -467,6 +486,22 @@ export function isNavItemVisible(role: OrgRole | null | undefined, navItem: stri
  * @returns array of visible nav item keys
  */
 export function getVisibleNavItems(role: OrgRole | null | undefined): string[] {
-  if (!role) return []
+  if (!role) {
+    return [
+      'search',
+      'home',
+      'inbox',
+      'my-tasks',
+      'favorites',
+      'initiatives',
+      'epics',
+      'projects',
+      'cycles',
+      'roadmap',
+      'vault',
+      'teams',
+      'settings',
+    ]
+  }
   return NAV_VISIBILITY[role] ?? []
 }

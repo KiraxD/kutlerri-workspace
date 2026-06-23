@@ -73,3 +73,144 @@ export async function createTeamAndOrg(formData: FormData) {
   revalidatePath('/teams')
   return team
 }
+
+export async function getTeamsAction() {
+  try {
+    const { userId, orgId } = await verifyPermission('manageTeams')
+
+    const supabase = await createClient()
+
+    const { data: teams, error } = await supabase
+      .from('teams')
+      .select('id, name, description')
+      .eq('organization_id', orgId)
+
+    if (error) {
+      return { success: false, error: error.message, teams: [] }
+    }
+
+    return { success: true, teams: teams || [] }
+  } catch (error: any) {
+    return { success: false, error: error.message, teams: [] }
+  }
+}
+
+export async function getEmployeesForTeamAction() {
+  try {
+    const { userId, orgId } = await verifyPermission('manageUserRoles')
+
+    const supabase = await createClient()
+
+    const { data: employees } = await supabase
+      .from('organization_members')
+      .select('user_id')
+      .eq('organization_id', orgId)
+
+    if (!employees) {
+      return { success: true, employees: [] }
+    }
+
+    const userIds = employees.map((e) => e.user_id)
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .in('id', userIds)
+
+    return { success: true, employees: profiles || [] }
+  } catch (error: any) {
+    return { success: false, error: error.message, employees: [] }
+  }
+}
+
+export async function addTeamMemberAction({
+  teamId,
+  employeeId,
+  teamRole,
+}: {
+  teamId: string
+  employeeId: string
+  teamRole: 'team_lead' | 'senior_member' | 'member' | 'guest'
+}) {
+  try {
+    const { userId, orgId } = await verifyPermission('manageTeams')
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('team_members')
+      .insert({
+        team_id: teamId,
+        user_id: employeeId,
+        team_role: teamRole,
+      })
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/teams')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function updateTeamMemberRoleAction({
+  teamId,
+  memberId,
+  newRole,
+}: {
+  teamId: string
+  memberId: string
+  newRole: 'team_lead' | 'senior_member' | 'member' | 'guest'
+}) {
+  try {
+    const { userId, orgId } = await verifyPermission('manageTeams')
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('team_members')
+      .update({ team_role: newRole })
+      .eq('team_id', teamId)
+      .eq('user_id', memberId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/teams')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function removeTeamMemberAction({
+  teamId,
+  memberId,
+}: {
+  teamId: string
+  memberId: string
+}) {
+  try {
+    const { userId, orgId } = await verifyPermission('manageTeams')
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('team_members')
+      .delete()
+      .eq('team_id', teamId)
+      .eq('user_id', memberId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/teams')
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

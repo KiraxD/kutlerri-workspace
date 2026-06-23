@@ -83,7 +83,8 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
           isNavItemVisible(role, 'cycles') ||
           isNavItemVisible(role, 'roadmap') ||
           isNavItemVisible(role, 'vault') ||
-          isNavItemVisible(role, 'teams')) && (
+          isNavItemVisible(role, 'teams') ||
+          isNavItemVisible(role, 'employees')) && (
           <div className="mx-4 my-2 border-t border-[#222]" />
         )}
 
@@ -94,7 +95,8 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
           isNavItemVisible(role, 'cycles') ||
           isNavItemVisible(role, 'roadmap') ||
           isNavItemVisible(role, 'vault') ||
-          isNavItemVisible(role, 'teams')) && (
+          isNavItemVisible(role, 'teams') ||
+          isNavItemVisible(role, 'employees')) && (
           <div className="px-2 mb-2">
             <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Workspace</p>
             <div className="space-y-0.5">
@@ -118,6 +120,9 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
               )}
               {isNavItemVisible(role, 'teams') && (
                 <NavItem href="/teams" icon={<Users className="w-4 h-4" />} label="Teams" />
+              )}
+              {isNavItemVisible(role, 'employees') && (
+                <NavItem href="/employees" icon={<Users className="w-4 h-4" />} label="Employees" />
               )}
             </div>
           </div>
