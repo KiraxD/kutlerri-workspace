@@ -15,7 +15,7 @@ interface Employee {
   id: string
   email: string
   full_name: string | null
-  role: OrgRole
+  role: OrgRole | 'unassigned'
 }
 
 export default function EmployeesPage() {
@@ -232,13 +232,22 @@ export default function EmployeesPage() {
                       <p className="text-white/60 text-sm">{emp.email}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <RoleBadge role={emp.role} />
+                      {emp.role === 'unassigned' ? (
+                        <span className="px-3 py-1 bg-gray-500/30 border border-gray-500/50 rounded-full text-xs font-semibold text-gray-300 capitalize">
+                          Unassigned
+                        </span>
+                      ) : (
+                        <RoleBadge role={emp.role as OrgRole} />
+                      )}
                       <Select
                         value={emp.role}
-                        onValueChange={(newRole) =>
-                          handleRoleChange(emp.id, newRole as OrgRole)
-                        }
+                        onValueChange={(newRole: string | null) => {
+                          if (newRole) handleRoleChange(emp.id, newRole as OrgRole)
+                        }}
                       >
+                        {emp.role === 'unassigned' && (
+                          <option value="unassigned">Select Role...</option>
+                        )}
                         {isSuper ? (
                           <>
                             <option value="viewer">Viewer</option>

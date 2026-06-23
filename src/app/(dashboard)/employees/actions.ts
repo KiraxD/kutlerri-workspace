@@ -2,6 +2,7 @@
 
 import { verifyPermission } from '@/lib/auth-helpers'
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 import { type OrgRole, ROLE_HIERARCHY } from '@/lib/permissions'
 import * as XLSX from 'xlsx'
 
@@ -21,42 +22,41 @@ export async function getEmployeesAction() {
 
     const userRole = currentUserRole?.role as OrgRole
 
-    // Get all organization members
-    const { data: members, error } = await supabase
+    // Get ALL profiles (all users in the system)
+    const { data: allProfiles } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .order('email', { ascending: true })
+
+    if (!allProfiles) {
+      return { success: false, error: 'Failed to fetch profiles', employees: [] }
+    }
+
+    // Get organization members for this org
+    const { data: members } = await supabase
       .from('organization_members')
       .select('user_id, role')
       .eq('organization_id', orgId)
 
-    if (error) {
-      return { success: false, error: error.message, employees: [] }
-    }
+    const memberMap = new Map(members?.map((m) => [m.user_id, m.role]) || [])
 
     // For managers, filter to show only employees below them
-    let filteredMembers = members
+    let employees = allProfiles.map((profile) => ({
+      id: profile.id,
+      email: profile.email,
+      full_name: profile.full_name,
+      role: (memberMap.get(profile.id) || 'unassigned') as OrgRole | 'unassigned',
+    }))
+
     if (userRole === 'manager') {
-      filteredMembers = members.filter((m) => {
-        const memberHierarchy = ROLE_HIERARCHY[m.role as OrgRole] || 0
+      employees = employees.filter((emp) => {
+        if (emp.role === 'unassigned') return true
+        const memberHierarchy = ROLE_HIERARCHY[emp.role as OrgRole] || 0
         return memberHierarchy < ROLE_HIERARCHY.manager
       })
     }
 
-    // Fetch user profiles for these members
-    const userIds = filteredMembers.map((m) => m.user_id)
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, email, full_name')
-      .in('id', userIds)
-
-    // Combine data
-    const employees = filteredMembers.map((member) => {
-      const profile = profiles?.find((p) => p.id === member.user_id)
-      return {
-        id: member.user_id,
-        email: profile?.email || '',
-        full_name: profile?.full_name || null,
-        role: member.role as OrgRole,
-      }
-    })
+    return { success: true, employees }
 
     return { success: true, employees }
   } catch (error: any) {
@@ -167,16 +167,23 @@ export async function updateEmployeeRoleAction({
       return { success: false, error: 'Managers can only assign Viewer and Employee roles' }
     }
 
+    // Use upsert to handle both new assignments and role changes
     const { error } = await supabase
       .from('organization_members')
-      .update({ role: newRole })
-      .eq('organization_id', orgId)
-      .eq('user_id', employeeId)
+      .upsert(
+        {
+          organization_id: orgId,
+          user_id: employeeId,
+          role: newRole,
+        },
+        { onConflict: 'organization_id,user_id' }
+      )
 
     if (error) {
       return { success: false, error: error.message }
     }
 
+    revalidatePath('/employees')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
