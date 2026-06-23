@@ -33,19 +33,17 @@ interface NavItemProps {
 export function Sidebar({ userName, userEmail }: { userName: string | null; userEmail: string | null }) {
   return (
     <aside className="w-[240px] flex-shrink-0 border-r border-border bg-sidebar flex flex-col z-20 shadow-sm">
-      {/* Workspace Header */}
-      <div className="flex flex-col px-3 py-3 border-b border-border gap-1">
-        <div className="rounded-lg overflow-hidden bg-[#0d0d0d] flex items-center px-2 py-1.5">
-          <Image
-            src="/images/kutlerri-logo.png"
-            alt="Kutlerri"
-            width={110}
-            height={28}
-            className="h-7 w-auto object-contain"
-            priority
-          />
-        </div>
-        <span className="text-[10px] text-muted-foreground truncate px-1">{userEmail}</span>
+      {/* Workspace Header — sidebar is now black, logo renders naturally */}
+      <div className="flex flex-col px-4 py-4 border-b border-[#2a2a2a] gap-1.5">
+        <Image
+          src="/images/kutlerri-logo.png"
+          alt="Kutlerri"
+          width={120}
+          height={30}
+          className="h-8 w-auto object-contain"
+          priority
+        />
+        <span className="text-[10px] text-white/40 truncate">{userEmail}</span>
       </div>
 
       {/* Navigation */}
@@ -58,16 +56,16 @@ export function Sidebar({ userName, userEmail }: { userName: string | null; user
         </div>
 
         <div className="px-3 mb-3">
-          <div className="text-[10px] font-semibold text-muted-foreground/70 mb-1 px-2 uppercase tracking-wider">Your Space</div>
+          <div className="text-[10px] font-semibold text-white/30 mb-1 px-2 uppercase tracking-wider">Your Space</div>
           <div className="space-y-0.5">
             <NavItem href="/favorites" icon={<Star className="w-4 h-4" />} label="Favorites" />
           </div>
         </div>
 
         <div className="px-3 mb-3">
-          <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground/70 mb-1 px-2 uppercase tracking-wider group">
+          <div className="flex items-center justify-between text-[10px] font-semibold text-white/30 mb-1 px-2 uppercase tracking-wider group">
             <span>Workspace</span>
-            <MoreHorizontal className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-pointer" />
+            <MoreHorizontal className="w-3 h-3 opacity-0 group-hover:opacity-100 cursor-pointer text-white/40" />
           </div>
           <div className="space-y-0.5">
             <NavItem href="/initiatives" icon={<Compass className="w-4 h-4" />} label="Initiatives" />
@@ -82,7 +80,7 @@ export function Sidebar({ userName, userEmail }: { userName: string | null; user
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border mt-auto">
+      <div className="p-3 border-t border-[#2a2a2a] mt-auto">
         <NavItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" />
       </div>
     </aside>
@@ -99,21 +97,21 @@ function NavItem({ href, icon, label, shortcut }: NavItemProps) {
     <Link
       href={href}
       className={cn(
-        'flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors group',
+        'flex items-center gap-2.5 px-2.5 py-2 text-sm rounded-lg transition-all group',
         isActive
-          ? 'bg-primary/10 text-primary font-medium'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          ? 'bg-primary/20 text-primary font-medium'
+          : 'text-white/60 hover:bg-white/8 hover:text-white'
       )}
     >
       <div className={cn(
         'transition-colors shrink-0',
-        isActive ? 'text-primary' : 'text-muted-foreground/80 group-hover:text-foreground'
+        isActive ? 'text-primary' : 'text-white/40 group-hover:text-white'
       )}>
         {icon}
       </div>
       <span className="flex-1 truncate">{label}</span>
       {shortcut && (
-        <span className="text-[10px] uppercase font-mono bg-muted-foreground/10 px-1.5 py-0.5 rounded text-muted-foreground">
+        <span className="text-[10px] uppercase font-mono bg-white/10 px-1.5 py-0.5 rounded text-white/40">
           {shortcut}
         </span>
       )}
