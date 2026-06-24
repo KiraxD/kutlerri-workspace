@@ -1,4 +1,4 @@
-﻿import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import {
   CheckCircle2, Bell, Briefcase, Target, TrendingUp,
@@ -115,7 +115,7 @@ export default async function HomePage() {
           {name}
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          {organization?.name ? `Here's what's happening in ${organization.name}.` : "Here's what's happening in your workspace today."}
+          Here&apos;s what&apos;s happening in your workspace today.
         </p>
 
         <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg backdrop-blur-sm">
