@@ -28,38 +28,16 @@ export async function initializeSystemAction() {
       redirect('/home')
     }
 
-    const { data: existingMembers } = await supabase
-      .from('organization_members')
-      .select('organization_id')
+    // Use admin client to check if ANY organization exists (bypass RLS)
+    const adminSupabase = createAdminClient()
+    
+    // Fetch all organizations
+    const { data: orgs } = await adminSupabase
+      .from('organizations')
+      .select('id, name')
       .limit(1)
 
-    if (existingMembers && existingMembers.length > 0) {
-      return {
-        success: false,
-        error: 'A workspace already exists. Ask an administrator to add your account to the organization.',
-      }
-    }
-
-    // Use admin client for initialization operations (bypasses RLS)
-    const adminSupabase = createAdminClient()
-
-    const { data: org, error: orgError } = await adminSupabase
-      .from('organizations')
-      .insert({
-        name: `${userName}'s Workspace`,
-        slug:
-          user.email
-            .split('@')[0]
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random() * 1000),
-      })
-      .select()
-      .single()
-
-    if (orgError || !org) {
-      return { success: false, error: orgError?.message || 'Failed to create organization' }
-    }
-
+    // Create profile first
     await adminSupabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
@@ -67,39 +45,92 @@ export async function initializeSystemAction() {
       phone_number: user.user_metadata?.phone_number ?? null,
     })
 
-    const { error: memberError } = await adminSupabase.from('organization_members').insert({
-      organization_id: org.id,
-      user_id: user.id,
-      role: 'super_admin',
-    })
+    let org
 
-    if (memberError) {
-      return { success: false, error: memberError.message }
-    }
-
-    const { data: team, error: teamError } = await adminSupabase
-      .from('teams')
-      .insert({
+    if (orgs && orgs.length > 0) {
+      // Organization already exists - add user to it
+      org = orgs[0]
+      
+      // Add user to existing organization as 'employee'
+      const { error: memberError } = await adminSupabase.from('organization_members').insert({
         organization_id: org.id,
-        name: 'Default Team',
-        identifier: 'KT',
-      })
-      .select()
-      .single()
-
-    if (teamError) {
-      return { success: false, error: teamError.message }
-    }
-
-    if (team) {
-      const { error: teamMemberError } = await adminSupabase.from('team_members').insert({
-        team_id: team.id,
         user_id: user.id,
-        role: 'team_lead',
+        role: 'employee',
       })
 
-      if (teamMemberError) {
-        return { success: false, error: teamMemberError.message }
+      if (memberError) {
+        return { success: false, error: memberError.message }
+      }
+
+      // Add user to default team
+      const { data: defaultTeam } = await adminSupabase
+        .from('teams')
+        .select('id')
+        .eq('organization_id', org.id)
+        .limit(1)
+        .single()
+
+      if (defaultTeam) {
+        await adminSupabase.from('team_members').insert({
+          team_id: defaultTeam.id,
+          user_id: user.id,
+          role: 'member',
+        })
+      }
+    } else {
+      // No organization exists - create one (first user)
+      const { data: newOrg, error: orgError } = await adminSupabase
+        .from('organizations')
+        .insert({
+          name: 'Kutlerri Workspace',
+          slug: 'kutlerri-workspace',
+        })
+        .select()
+        .single()
+
+      if (orgError || !newOrg) {
+        return { success: false, error: orgError?.message || 'Failed to create organization' }
+      }
+
+      org = newOrg
+
+      // Add first user as super_admin
+      const { error: memberError } = await adminSupabase.from('organization_members').insert({
+        organization_id: org.id,
+        user_id: user.id,
+        role: 'super_admin',
+      })
+
+      if (memberError) {
+        return { success: false, error: memberError.message }
+      }
+
+      // Create default team
+      const { data: team, error: teamError } = await adminSupabase
+        .from('teams')
+        .insert({
+          organization_id: org.id,
+          name: 'Default Team',
+          identifier: 'KT',
+        })
+        .select()
+        .single()
+
+      if (teamError) {
+        return { success: false, error: teamError.message }
+      }
+
+      // Add first user to default team as team_lead
+      if (team) {
+        const { error: teamMemberError } = await adminSupabase.from('team_members').insert({
+          team_id: team.id,
+          user_id: user.id,
+          role: 'team_lead',
+        })
+
+        if (teamMemberError) {
+          return { success: false, error: teamMemberError.message }
+        }
       }
     }
 
