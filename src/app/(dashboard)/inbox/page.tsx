@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { Inbox as InboxIcon, Bell } from 'lucide-react'
+import { Inbox as InboxIcon, Bell, Archive, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default async function InboxPage() {
   const supabase = await createClient()
@@ -20,6 +22,39 @@ export default async function InboxPage() {
   }
 
   const notifList = notifications ?? []
+
+  const getNotificationMessage = (notification: any) => {
+    const actor = notification.actor?.full_name || notification.actor?.email || 'Someone'
+    
+    switch (notification.type) {
+      case 'task_assigned':
+        return `${actor} assigned you to a task`
+      case 'task_updated':
+        return `${actor} updated a task`
+      case 'task_completed':
+        return `${actor} completed a task`
+      case 'team_created':
+        return `${actor} created a team`
+      case 'team_member_added':
+        return `${actor} added you to a team`
+      case 'task_comment':
+        return `${actor} commented on a task`
+      case 'task_mentioned':
+        return `${actor} mentioned you in a task`
+      case 'mention':
+        return `${actor} mentioned you`
+      case 'assignment':
+        return `${actor} assigned you to a task`
+      case 'status_update':
+        return `${actor} updated the status`
+      case 'comment':
+        return `${actor} commented on`
+      case 'completed_work':
+        return `${actor} completed`
+      default:
+        return `${actor} sent you a notification`
+    }
+  }
 
   return (
     <div className="flex flex-col bg-background">
@@ -44,28 +79,33 @@ export default async function InboxPage() {
             {notifList.map((notification: any) => (
               <div
                 key={notification.id}
-                className="p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/50 cursor-pointer transition-all shadow-sm"
+                className="p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/50 cursor-pointer transition-all shadow-sm group"
               >
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-sm text-foreground">
-                    {notification.actor?.full_name || notification.actor?.email || 'Someone'}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {notification.type === 'mention' && 'mentioned you in'}
-                    {notification.type === 'assignment' && 'assigned you to'}
-                    {notification.type === 'status_update' && 'updated the status of'}
-                    {notification.type === 'comment' && 'commented on'}
-                    {notification.type === 'completed_work' && 'completed'}
-                  </span>
-                  {notification.task && (
-                    <span className="text-sm font-medium text-primary">
-                      {notification.task.identifier} – {notification.task.title}
-                    </span>
-                  )}
+                <div className="flex items-start gap-3 justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm text-foreground font-medium">
+                      {getNotificationMessage(notification)}
+                    </p>
+                    {notification.task && (
+                      <Link href={`/task/${notification.task.identifier}`}>
+                        <p className="text-sm font-medium text-primary mt-1 hover:underline">
+                          {notification.task.identifier} – {notification.task.title}
+                        </p>
+                      </Link>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {new Date(notification.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Archive">
+                      <Archive className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Delete">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(notification.created_at).toLocaleString()}
-                </p>
               </div>
             ))}
           </div>
@@ -74,3 +114,4 @@ export default async function InboxPage() {
     </div>
   )
 }
+

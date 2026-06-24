@@ -2,11 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 import { verifyPermission } from '@/lib/auth-helpers'
+import { createNotification } from '@/lib/notification-helper'
 
 export async function createTask(formData: FormData) {
-  const { userId } = await verifyPermission('createTask')
+  const { userId, orgId } = await verifyPermission('createTask')
 
   const supabase = await createClient()
 
@@ -15,6 +15,7 @@ export async function createTask(formData: FormData) {
   const team_id = formData.get('team_id') as string
   const status = (formData.get('status') as string) || 'Todo'
   const priority = (formData.get('priority') as string) || 'no_priority'
+  const assignee_id = (formData.get('assignee_id') as string) || null
 
   if (!title || !team_id) {
     throw new Error('Title and Team are required')
@@ -29,6 +30,7 @@ export async function createTask(formData: FormData) {
       status,
       priority,
       creator_id: userId,
+      assignee_id,
     })
     .select()
     .single()
@@ -38,6 +40,75 @@ export async function createTask(formData: FormData) {
     throw new Error('Failed to create task')
   }
 
-  revalidatePath('/my-tasks')
+  // Create notification for assignee if assigned
+  if (assignee_id && assignee_id !== userId) {
+    await createNotification({
+      userId: assignee_id,
+      organizationId: orgId,
+      type: 'task_assigned',
+      actorId: userId,
+      taskId: task.id,
+    })
+  }
+
   redirect(`/task/${task.identifier}`)
+}
+
+export async function assignTaskAction({
+  taskId,
+  assigneeId,
+}: {
+  taskId: string
+  assigneeId: string
+}) {
+  try {
+    const { userId, orgId } = await verifyPermission('assignTask')
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({ assignee_id: assigneeId })
+      .eq('id', taskId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    // Create notification for assignee
+    if (assigneeId !== userId) {
+      await createNotification({
+        userId: assigneeId,
+        organizationId: orgId,
+        type: 'task_assigned',
+        actorId: userId,
+        taskId,
+      })
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function unassignTaskAction({ taskId }: { taskId: string }) {
+  try {
+    await verifyPermission('assignTask')
+
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({ assignee_id: null })
+      .eq('id', taskId)
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
 }

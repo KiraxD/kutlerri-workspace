@@ -110,7 +110,7 @@ export async function createTeamAction({
   identifier: string
 }) {
   try {
-    const { orgId } = await verifyPermission('manageTeams')
+    const { orgId, userId } = await verifyPermission('manageTeams')
 
     const supabase = await createClient()
 
@@ -128,6 +128,22 @@ export async function createTeamAction({
     if (error) {
       return { success: false, error: error.message }
     }
+
+    // Add creator as team_lead
+    await supabase.from('team_members').insert({
+      team_id: team.id,
+      user_id: userId,
+      role: 'team_lead',
+    })
+
+    // Create notification
+    await supabase.from('notifications').insert({
+      user_id: userId,
+      organization_id: orgId,
+      actor_id: userId,
+      type: 'team_created',
+      created_at: new Date().toISOString(),
+    })
 
     return { success: true, team }
   } catch (error: any) {
@@ -172,7 +188,7 @@ export async function addTeamMemberAction({
   teamRole: 'team_lead' | 'senior_member' | 'member' | 'guest'
 }) {
   try {
-    await verifyPermission('manageTeams')
+    const { orgId, userId } = await verifyPermission('manageTeams')
 
     const supabase = await createClient()
 
@@ -185,6 +201,15 @@ export async function addTeamMemberAction({
     if (error) {
       return { success: false, error: error.message }
     }
+
+    // Create notification for team member addition
+    await supabase.from('notifications').insert({
+      user_id: employeeId,
+      organization_id: orgId,
+      actor_id: userId,
+      type: 'team_member_added',
+      created_at: new Date().toISOString(),
+    })
 
     return { success: true }
   } catch (error: any) {

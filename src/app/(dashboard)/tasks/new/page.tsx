@@ -34,6 +34,11 @@ export default async function NewTaskPage() {
     )
   }
 
+  // Fetch team members for assignee selection
+  const { data: allTeamMembers } = await supabase
+    .from('team_members')
+    .select('user_id, profiles:user_id(id, email, full_name)')
+
   return (
     <div className="flex flex-col h-full items-center justify-center bg-muted/20">
       <div className="w-full max-w-2xl bg-background border border-border rounded-lg shadow-sm overflow-hidden">
@@ -94,6 +99,23 @@ export default async function NewTaskPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="assignee_id">Assign To (Optional)</Label>
+              <Select name="assignee_id">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select assignee" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No assignee</SelectItem>
+                  {allTeamMembers?.map((member: any) => (
+                    <SelectItem key={member.user_id} value={member.user_id}>
+                      {member.profiles?.full_name || member.profiles?.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
