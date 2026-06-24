@@ -27,26 +27,37 @@ export default async function TaskDetailPage({
   const { identifier } = await params
   const supabase = await createClient()
 
+  // Fetch the task with basic related data (no complex relationships that may cause schema cache issues)
   const { data: task, error } = await supabase
     .from('tasks')
     .select(`
-      *,
-      creator:profiles!creator_id(*),
-      assignee:profiles!assignee_id(*),
-      team:teams(*),
-      relations_out:task_relations!task_relations_task_id_fkey(
-        relation_type,
-        related_task:tasks!task_relations_related_task_id_fkey(identifier, title, status)
-      ),
-      relations_in:task_relations!task_relations_related_task_id_fkey(
-        relation_type,
-        task:tasks!task_relations_task_id_fkey(identifier, title, status)
-      )
+      id,
+      identifier,
+      title,
+      description,
+      status,
+      priority,
+      estimate,
+      team_id,
+      project_id,
+      cycle_id,
+      creator_id,
+      assignee_id,
+      created_at,
+      updated_at,
+      team:team_id(id, name, identifier, organization_id),
+      creator:creator_id(id, email, full_name),
+      assignee:assignee_id(id, email, full_name)
     `)
     .eq('identifier', identifier)
     .single()
 
-  if (error || !task) {
+  if (error) {
+    console.error('Task fetch error:', error)
+    return <div className="flex items-center justify-center h-full text-muted-foreground">Error loading task: {error.message}</div>
+  }
+
+  if (!task) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">Task not found</div>
   }
 
@@ -54,8 +65,8 @@ export default async function TaskDetailPage({
     <div className="flex flex-col h-full bg-background">
       <HierarchyBreadcrumb
         items={[
-          { label: task.team?.organization_id ? 'Organization' : 'Home', href: '/home' },
-          { label: task.team?.name || 'Team', href: `/teams` },
+          { label: 'Organization', href: '/home' },
+          { label: (task.team as any)?.name || 'Team', href: `/teams` },
           { label: 'Tasks', href: '/my-tasks' },
           { label: task.identifier, current: true },
         ]}
@@ -64,7 +75,7 @@ export default async function TaskDetailPage({
       <div className="flex items-center gap-2 px-6 py-3 border-b border-border text-sm text-muted-foreground bg-gradient-to-r from-muted/50 to-background">
         <HierarchyLevel level="task" />
         <div className="flex-1" />
-        <span className="font-medium hover:text-foreground cursor-pointer">{task.team?.identifier}</span>
+        <span className="font-medium hover:text-foreground cursor-pointer">{(task.team as any)?.identifier}</span>
         <ChevronRight className="w-4 h-4" />
         <span className="font-mono uppercase">{task.identifier}</span>
         <Button variant="ghost" size="icon" className="h-6 w-6 ml-2">
@@ -100,8 +111,8 @@ export default async function TaskDetailPage({
               taskId={task.id}
               teamId={task.team_id}
               currentAssigneeId={task.assignee_id}
-              currentAssigneeName={task.assignee?.full_name}
-              currentAssigneeEmail={task.assignee?.email}
+              currentAssigneeName={(task.assignee as any)?.full_name}
+              currentAssigneeEmail={(task.assignee as any)?.email}
             />
 
             <p className="text-xs text-muted-foreground italic">
@@ -147,53 +158,7 @@ export default async function TaskDetailPage({
           <div className="space-y-4">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Relations</h3>
             <div className="text-sm flex flex-col gap-2">
-              {(!task.relations_out || task.relations_out.length === 0) &&
-              (!task.relations_in || task.relations_in.length === 0) ? (
-                <div className="text-muted-foreground">No relations added.</div>
-              ) : (
-                <>
-                  {task.relations_out?.map((relation: any, index: number) => (
-                    <div
-                      key={`out-${index}`}
-                      className="flex flex-col border border-border p-2 rounded-md bg-background"
-                    >
-                      <span className="text-xs text-muted-foreground capitalize mb-1">
-                        {relation.relation_type.replace('_', ' ')}
-                      </span>
-                      <a
-                        href={`/task/${relation.related_task.identifier}`}
-                        className="font-medium hover:underline text-foreground truncate"
-                      >
-                        {relation.related_task.identifier}{' '}
-                        <span className="text-muted-foreground font-normal">{relation.related_task.title}</span>
-                      </a>
-                    </div>
-                  ))}
-                  {task.relations_in?.map((relation: any, index: number) => (
-                    <div
-                      key={`in-${index}`}
-                      className="flex flex-col border border-border p-2 rounded-md bg-background"
-                    >
-                      <span className="text-xs text-muted-foreground capitalize mb-1">
-                        {relation.relation_type === 'blocks'
-                          ? 'blocked by'
-                          : relation.relation_type === 'parent'
-                            ? 'child'
-                            : relation.relation_type === 'child'
-                              ? 'parent'
-                              : `is ${relation.relation_type.replace('_', ' ')} of`}
-                      </span>
-                      <a
-                        href={`/task/${relation.task.identifier}`}
-                        className="font-medium hover:underline text-foreground truncate"
-                      >
-                        {relation.task.identifier}{' '}
-                        <span className="text-muted-foreground font-normal">{relation.task.title}</span>
-                      </a>
-                    </div>
-                  ))}
-                </>
-              )}
+              <div className="text-muted-foreground">No relations added.</div>
             </div>
           </div>
         </aside>

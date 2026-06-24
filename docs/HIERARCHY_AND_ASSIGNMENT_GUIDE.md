@@ -59,11 +59,13 @@ Your application now follows the **6-level organizational hierarchy** exactly as
 When you click on any task, you'll see:
 
 1. **Hierarchical Breadcrumb** at the top showing:
+
    ```
    Organization → Team → Tasks → [TASK-ID]
    ```
 
 2. **Hierarchy Level Indicator** showing:
+
    ```
    ✓ TASK (5/6) - Which level you're on
    ```
@@ -79,13 +81,13 @@ When you click on any task, you'll see:
 
 ### Who Can Assign Tasks
 
-| Role | Can Assign To |
-|------|--------------|
-| **Super Admin** | Anyone in the organization |
-| **Admin** | Anyone in the organization |
-| **Manager** | Team members only (same team) |
-| **Employee** | Cannot assign (read-only) |
-| **Viewer** | Cannot assign (read-only) |
+| Role            | Can Assign To                 |
+| --------------- | ----------------------------- |
+| **Super Admin** | Anyone in the organization    |
+| **Admin**       | Anyone in the organization    |
+| **Manager**     | Team members only (same team) |
+| **Employee**    | Cannot assign (read-only)     |
+| **Viewer**      | Cannot assign (read-only)     |
 
 ---
 
@@ -138,27 +140,32 @@ WORKSPACE
 ## 📊 UI Components Implemented
 
 ### 1. **HierarchyBreadcrumb Component**
+
 - Shows navigation path through hierarchy
 - Click links to navigate back
 - Example: `Home > PRODUCT team > My Tasks > PROD-1`
 
 ### 2. **HierarchyLevel Indicator**
+
 - Shows current level in 6-level hierarchy
 - Format: `✓ TASK (5/6)`
 - Helps users understand structure
 
 ### 3. **HierarchyVisualization Component**
+
 - Displays complete org hierarchy structure
 - Shows all 6 levels with icons
 - Available for reference
 
 ### 4. **TaskAssignmentDisplay Component**
+
 - Shows current assignee
 - Displays "Assign" button
 - Filters available users by role
 - Client-side for interactivity
 
 ### 5. **TaskAssignmentSelector Component**
+
 - Interactive dropdown for selecting assignee
 - Shows user names and emails
 - Avatar display
@@ -180,15 +187,18 @@ WORKSPACE
 ## 📁 Files Implementing the System
 
 **Backend/Logic:**
+
 - `src/lib/task-assignment-helpers.ts` - Permission & filtering logic
 - `src/app/(dashboard)/tasks/new/actions.ts` - Task assignment actions
 
 **Frontend/UI:**
+
 - `src/components/hierarchy-breadcrumb.tsx` - Breadcrumb & hierarchy display
 - `src/components/task-assignment-selector.tsx` - Assignment dropdown
 - `src/components/task-assignment-display.tsx` - Assignee display
 
 **Pages:**
+
 - `src/app/(dashboard)/task/[identifier]/page.tsx` - Task detail with assignment
 
 ---
@@ -223,30 +233,36 @@ If denied → Show error message
 ## ✨ Key Features
 
 ✅ **6-Level Organizational Hierarchy**
+
 - Organization → Teams → Initiatives → Epics → Tasks → Sub-Tasks
 - Complete structure reflected in UI and navigation
 
 ✅ **Role-Based Task Assignment**
+
 - Super Admin/Admin: Full organization access
 - Manager: Team-level access only
 - Employee/Viewer: Read-only access
 
 ✅ **Visual Hierarchy Indicators**
+
 - Breadcrumbs showing navigation path
 - Level indicators (5/6, etc.)
 - Icon-based hierarchy visualization
 
 ✅ **Contextual Filtering**
+
 - Only show assignable users
 - Respect team boundaries
 - Permission-aware UI
 
 ✅ **User Notifications**
+
 - Assignee notified when assigned a task
 - Type: `task_assigned`
 - Includes task details
 
 ✅ **Error Handling**
+
 - Clear error messages
 - Permission denial feedback
 - Network error recovery
@@ -256,6 +272,7 @@ If denied → Show error message
 ## 🎓 User Guide by Role
 
 ### 👑 Super Admin/Admin
+
 1. Go to any task
 2. Click "Assign" button
 3. See all organization members
@@ -263,6 +280,7 @@ If denied → Show error message
 5. Assignee gets notification
 
 ### 👨‍💼 Manager
+
 1. Go to team task
 2. Click "Assign" button
 3. See only your team members
@@ -270,12 +288,14 @@ If denied → Show error message
 5. Assignee gets notification
 
 ### 👤 Employee
+
 1. Go to any task
 2. See current assignee displayed
 3. Cannot change assignment (restricted by role)
 4. Can still work on assigned tasks
 
 ### 👁️ Viewer
+
 1. View-only access to all content
 2. Cannot assign tasks
 3. Cannot modify anything
@@ -286,6 +306,7 @@ If denied → Show error message
 ## 🚀 Deployment Status
 
 ✅ **Production Deployed**
+
 - All 31 routes compiled successfully
 - Zero TypeScript errors
 - Live at: https://kutlerri-workspace.vercel.app

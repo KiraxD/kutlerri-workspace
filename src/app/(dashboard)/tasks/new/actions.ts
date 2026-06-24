@@ -21,6 +21,18 @@ export async function createTask(formData: FormData) {
     throw new Error('Title and Team are required')
   }
 
+  // Verify user is a member of the team
+  const { data: teamMember, error: memberError } = await supabase
+    .from('team_members')
+    .select('team_id')
+    .eq('team_id', team_id)
+    .eq('user_id', userId)
+    .single()
+
+  if (memberError || !teamMember) {
+    throw new Error('You are not a member of this team')
+  }
+
   const { data: task, error } = await supabase
     .from('tasks')
     .insert({
@@ -32,12 +44,18 @@ export async function createTask(formData: FormData) {
       creator_id: userId,
       assignee_id,
     })
-    .select()
+    .select('id, identifier, title')
     .single()
 
   if (error) {
     console.error('Error creating task:', error)
-    throw new Error('Failed to create task')
+    console.error('Error details:', error.message, error.code)
+    throw new Error(`Failed to create task: ${error.message}`)
+  }
+
+  if (!task || !task.identifier) {
+    console.error('Task created but no identifier returned:', task)
+    throw new Error('Task created but identifier not generated')
   }
 
   // Create notification for assignee if assigned
