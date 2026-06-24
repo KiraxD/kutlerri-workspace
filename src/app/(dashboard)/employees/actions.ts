@@ -86,8 +86,9 @@ export async function getEmployeesAction() {
       return { success: false, error: 'Role not found', employees: [] }
     }
 
-    // Fetch ALL profiles in the system
-    const { data: allProfiles, error: profilesError } = await supabase
+    // Use admin client to fetch ALL profiles without RLS restrictions
+    const adminSupabase = createAdminClient()
+    const { data: allProfiles, error: profilesError } = await adminSupabase
       .from('profiles')
       .select('id, email, full_name')
       .order('email', { ascending: true })
