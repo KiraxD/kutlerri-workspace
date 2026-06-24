@@ -122,10 +122,10 @@ CREATE POLICY "team_delete" ON teams FOR DELETE
 --------------------------------------------------------------------------------
 -- TEAM_MEMBERS
 --------------------------------------------------------------------------------
--- Read: Super Admin, Admin, Manager, Employee, Viewer
+-- Read: Super Admin, Admin, Manager, Employee, Viewer, or the user themselves
 CREATE POLICY "team_mem_read" ON team_members FOR SELECT 
   USING (
-    EXISTS (SELECT 1 FROM teams WHERE teams.id = team_id AND get_org_role(teams.organization_id) IS NOT NULL)
+    auth.uid() = user_id OR EXISTS (SELECT 1 FROM teams WHERE teams.id = team_id AND get_org_role(teams.organization_id) IS NOT NULL)
   );
 
 -- Manage Team Members: Super Admin, Admin, Manager
