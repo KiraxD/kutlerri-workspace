@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function initializeSystemAction() {
   try {
@@ -39,7 +40,10 @@ export async function initializeSystemAction() {
       }
     }
 
-    const { data: org, error: orgError } = await supabase
+    // Use admin client for initialization operations (bypasses RLS)
+    const adminSupabase = createAdminClient()
+
+    const { data: org, error: orgError } = await adminSupabase
       .from('organizations')
       .insert({
         name: `${userName}'s Workspace`,
@@ -56,14 +60,14 @@ export async function initializeSystemAction() {
       return { success: false, error: orgError?.message || 'Failed to create organization' }
     }
 
-    await supabase.from('profiles').upsert({
+    await adminSupabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
       full_name: userName,
       phone_number: user.user_metadata?.phone_number ?? null,
     })
 
-    const { error: memberError } = await supabase.from('organization_members').insert({
+    const { error: memberError } = await adminSupabase.from('organization_members').insert({
       organization_id: org.id,
       user_id: user.id,
       role: 'super_admin',
@@ -73,7 +77,7 @@ export async function initializeSystemAction() {
       return { success: false, error: memberError.message }
     }
 
-    const { data: team, error: teamError } = await supabase
+    const { data: team, error: teamError } = await adminSupabase
       .from('teams')
       .insert({
         organization_id: org.id,
@@ -88,7 +92,7 @@ export async function initializeSystemAction() {
     }
 
     if (team) {
-      const { error: teamMemberError } = await supabase.from('team_members').insert({
+      const { error: teamMemberError } = await adminSupabase.from('team_members').insert({
         team_id: team.id,
         user_id: user.id,
         role: 'team_lead',
