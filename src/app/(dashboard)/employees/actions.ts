@@ -86,20 +86,28 @@ export async function getEmployeesAction() {
       return { success: false, error: 'Role not found', employees: [] }
     }
 
-    // Use admin client to fetch ALL profiles without RLS restrictions
+    // Fetch ALL auth users (registered users), including old accounts
     const adminSupabase = createAdminClient()
-    const { data: allProfiles, error: profilesError } = await adminSupabase
-      .from('profiles')
-      .select('id, email, full_name')
-      .order('email', { ascending: true })
+    const { data: authData, error: authError } = await adminSupabase.auth.admin.listUsers({ perPage: 1000 })
 
-    if (profilesError) {
-      console.error('Error fetching profiles:', profilesError)
-      return { success: false, error: `Failed to fetch profiles: ${profilesError.message}`, employees: [] }
+    if (authError) {
+      console.error('Error fetching auth users:', authError)
+      return { success: false, error: `Failed to fetch registered users: ${authError.message}`, employees: [] }
     }
 
-    if (!allProfiles || allProfiles.length === 0) {
+    if (!authData?.users || authData.users.length === 0) {
       return { success: true, employees: [] }
+    }
+
+    // Ensure all auth users have profiles created
+    for (const authUser of authData.users) {
+      await adminSupabase.from('profiles').upsert({
+        id: authUser.id,
+        email: authUser.email ?? '',
+        full_name: (authUser.user_metadata?.full_name as string | undefined) ?? null,
+        phone_number: (authUser.user_metadata?.phone_number as string | undefined) ?? null,
+        avatar_url: (authUser.user_metadata?.avatar_url as string | undefined) ?? null,
+      })
     }
 
     // Fetch organization members to see who has a role assigned
@@ -114,17 +122,27 @@ export async function getEmployeesAction() {
     }
 
     const memberMap = new Map(members?.map((member) => [member.user_id, member.role]) || [])
+    
+    console.log('DEBUG: Organization members:', members)
+    console.log('DEBUG: Member map:', Array.from(memberMap.entries()))
+    console.log('DEBUG: Auth users:', authData.users.map(u => ({ id: u.id, email: u.email })))
 
-    // Build employee list with all profiles, showing role if member, "Not assigned" if not
-    let employees = allProfiles
-      .map((profile) => ({
-        id: profile.id,
-        email: profile.email || '',
-        full_name: profile.full_name || null,
-        role: (memberMap.get(profile.id) as OrgRole) || ('viewer' as OrgRole), // Default to viewer if not assigned
-        isAssigned: memberMap.has(profile.id),
-      }))
+    // Build employee list from auth users with their org roles
+    let employees = authData.users
+      .map((authUser) => {
+        const assigned = memberMap.has(authUser.id)
+        const role = (memberMap.get(authUser.id) as OrgRole) || ('viewer' as OrgRole)
+        console.log(`DEBUG: User ${authUser.email} (${authUser.id}): assigned=${assigned}, role=${role}`)
+        return {
+          id: authUser.id,
+          email: authUser.email || '',
+          full_name: (authUser.user_metadata?.full_name as string | null) || null,
+          role,
+          isAssigned: assigned,
+        }
+      })
       .filter((employee) => employee.email)
+      .sort((a, b) => a.email.localeCompare(b.email))
 
     // Managers can only see employees below them
     if (userRole === 'manager') {
