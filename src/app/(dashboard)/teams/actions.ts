@@ -1,6 +1,7 @@
 ﻿'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { verifyPermission } from '@/lib/auth-helpers'
 
 export async function createTeamAndOrg(formData: FormData) {
@@ -52,7 +53,13 @@ export async function createTeamAndOrg(formData: FormData) {
 
   if (orgError) throw new Error(orgError.message)
 
-  await supabase.from('organization_members').insert({
+  // Use admin client for organization_members insert (permissions already verified)
+  const adminSupabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  await adminSupabase.from('organization_members').insert({
     organization_id: org.id,
     user_id: user.id,
     role: 'super_admin',
@@ -70,7 +77,7 @@ export async function createTeamAndOrg(formData: FormData) {
 
   if (teamError) throw new Error(teamError.message)
 
-  await supabase.from('team_members').insert({
+  await adminSupabase.from('team_members').insert({
     team_id: team.id,
     user_id: user.id,
     role: 'team_lead',
@@ -129,8 +136,13 @@ export async function createTeamAction({
       return { success: false, error: error.message }
     }
 
-    // Add creator as team_lead
-    await supabase.from('team_members').insert({
+    // Add creator as team_lead (use admin client - permissions already verified)
+    const adminSupabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    await adminSupabase.from('team_members').insert({
       team_id: team.id,
       user_id: userId,
       role: 'team_lead',
@@ -192,7 +204,13 @@ export async function addTeamMemberAction({
 
     const supabase = await createClient()
 
-    const { error } = await supabase.from('team_members').insert({
+    // Use admin client to insert team_members (permissions already verified)
+    const adminSupabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { error } = await adminSupabase.from('team_members').insert({
       team_id: teamId,
       user_id: employeeId,
       role: teamRole,
@@ -229,9 +247,13 @@ export async function updateTeamMemberRoleAction({
   try {
     await verifyPermission('manageTeams')
 
-    const supabase = await createClient()
+    // Use admin client to update team_members (permissions already verified)
+    const adminSupabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('team_members')
       .update({ role: newRole })
       .eq('team_id', teamId)
@@ -257,9 +279,13 @@ export async function removeTeamMemberAction({
   try {
     await verifyPermission('manageTeams')
 
-    const supabase = await createClient()
+    // Use admin client to delete from team_members (permissions already verified)
+    const adminSupabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('team_members')
       .delete()
       .eq('team_id', teamId)

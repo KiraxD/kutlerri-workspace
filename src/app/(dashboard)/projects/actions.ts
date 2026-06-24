@@ -3,6 +3,7 @@
 import { verifyPermission } from '@/lib/auth-helpers'
 import { createClient } from '@/lib/supabase/server'
 import { createBulkNotifications } from '@/lib/notification-helper'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export async function createProjectAction({
   teamId,
@@ -31,7 +32,25 @@ export async function createProjectAction({
     return { success: false, error: 'Team not found or unauthorized' }
   }
 
-  const { data: project, error } = await supabase
+  // Verify user is actually a team member
+  const { data: isMember } = await supabase
+    .from('team_members')
+    .select('id')
+    .eq('team_id', teamId)
+    .eq('user_id', userId)
+    .single()
+
+  if (!isMember) {
+    return { success: false, error: 'You must be a team member to create projects' }
+  }
+
+  // Use admin client to insert project (permission already verified above)
+  const adminSupabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  
+  const { data: project, error } = await adminSupabase
     .from('projects')
     .insert({
       team_id: teamId,
