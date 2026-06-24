@@ -95,6 +95,9 @@ const PERMISSIONS_MATRIX: Record<OrgRole, Record<string, boolean>> = {
     createEpic: true,
     updateEpic: true,
     deleteEpic: true,
+    createStory: true,
+    updateStory: true,
+    deleteStory: true,
 
     // Milestone & Roadmap
     createMilestone: true,
@@ -159,6 +162,9 @@ const PERMISSIONS_MATRIX: Record<OrgRole, Record<string, boolean>> = {
     createEpic: true,
     updateEpic: true,
     deleteEpic: true,
+    createStory: true,
+    updateStory: true,
+    deleteStory: true,
 
     // Milestone & Roadmap
     createMilestone: true,
@@ -223,6 +229,9 @@ const PERMISSIONS_MATRIX: Record<OrgRole, Record<string, boolean>> = {
     createEpic: true,
     updateEpic: true,
     deleteEpic: false,
+    createStory: true,
+    updateStory: true,
+    deleteStory: false,
 
     // Milestone & Roadmap
     createMilestone: true,
@@ -287,6 +296,9 @@ const PERMISSIONS_MATRIX: Record<OrgRole, Record<string, boolean>> = {
     createEpic: false,
     updateEpic: false,
     deleteEpic: false,
+    createStory: true,
+    updateStory: true,
+    deleteStory: false,
 
     // Milestone & Roadmap
     createMilestone: false,
@@ -409,6 +421,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'favorites',
     'initiatives',
     'epics',
+    'stories',
     'projects',
     'cycles',
     'roadmap',
@@ -425,6 +438,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'favorites',
     'initiatives',
     'epics',
+    'stories',
     'projects',
     'cycles',
     'roadmap',
@@ -440,6 +454,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'favorites',
     'initiatives',
     'epics',
+    'stories',
     'projects',
     'cycles',
     'roadmap',
@@ -447,7 +462,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'teams',
     'settings',
   ],
-  employee: ['search', 'home', 'inbox', 'my-tasks', 'favorites', 'projects', 'vault', 'settings'],
+  employee: ['search', 'home', 'inbox', 'my-tasks', 'favorites', 'stories', 'projects', 'vault', 'settings'],
   viewer: ['search', 'home', 'inbox', 'my-tasks', 'favorites', 'projects', 'vault'],
 }
 
@@ -468,6 +483,7 @@ export function isNavItemVisible(role: OrgRole | null | undefined, navItem: stri
       'favorites',
       'initiatives',
       'epics',
+      'stories',
       'projects',
       'cycles',
       'roadmap',
@@ -495,6 +511,7 @@ export function getVisibleNavItems(role: OrgRole | null | undefined): string[] {
       'favorites',
       'initiatives',
       'epics',
+      'stories',
       'projects',
       'cycles',
       'roadmap',

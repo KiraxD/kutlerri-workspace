@@ -11,7 +11,12 @@ export type NotificationType =
   | 'task_comment'
   | 'task_mentioned'
   | 'initiative_created'
+  | 'initiative_status_changed'
   | 'epic_created'
+  | 'epic_completed'
+  | 'story_created'
+  | 'story_assigned'
+  | 'subtask_completed'
   | 'project_created'
   | 'vault_created'
 

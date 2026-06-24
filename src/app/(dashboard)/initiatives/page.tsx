@@ -1,31 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import { Compass, Plus, Target, ArrowRight, TrendingUp, Calendar } from 'lucide-react'
+import { Compass, Plus, Target, ArrowRight, TrendingUp, Calendar, Layers } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { STATUS_STYLES, STATUS_DOT } from '@/lib/types'
 
-const STATUS_STYLES: Record<string, string> = {
-  Backlog: 'bg-gray-100 text-gray-500',
-  Ready: 'bg-sky-100 text-sky-700',
-  Todo: 'bg-gray-100 text-gray-600',
-  'In Progress': 'bg-yellow-100 text-yellow-700',
-  Review: 'bg-blue-100 text-blue-700',
-  Testing: 'bg-purple-100 text-purple-700',
-  Blocked: 'bg-red-100 text-red-600',
-  Done: 'bg-green-100 text-green-700',
-  Cancelled: 'bg-gray-100 text-gray-400',
-}
-
-const STATUS_DOT: Record<string, string> = {
-  Backlog: 'bg-gray-300',
-  Ready: 'bg-sky-400',
-  Todo: 'bg-gray-400',
-  'In Progress': 'bg-yellow-400',
-  Review: 'bg-blue-400',
-  Testing: 'bg-purple-400',
-  Blocked: 'bg-red-500',
-  Done: 'bg-green-500',
-  Cancelled: 'bg-gray-200',
-}
 
 export default async function InitiativesPage() {
   const supabase = await createClient()
@@ -41,7 +19,7 @@ export default async function InitiativesPage() {
   if (orgIds.length > 0) {
     const { data } = await supabase
       .from('initiatives')
-      .select('*, owner:profiles!owner_id(id, full_name, email, avatar_url)')
+      .select('*, owner:profiles!owner_id(id, full_name, email, avatar_url), epics(id)')
       .in('organization_id', orgIds)
       .order('created_at', { ascending: false })
     initiatives = data ?? []
@@ -136,38 +114,56 @@ export default async function InitiativesPage() {
 }
 
 function InitiativeRow({ initiative }: { initiative: any }) {
+  const progress = initiative.progress ?? 0
+  const epicCount = initiative.epics?.length ?? 0
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group">
-      <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[initiative.status] ?? 'bg-gray-300'}`} />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{initiative.name}</p>
-        {initiative.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{initiative.description}</p>}
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        {initiative.target_date && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="w-3 h-3" />
-            {new Date(initiative.target_date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-          </div>
-        )}
-        {initiative.owner && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">
-              {(initiative.owner.full_name || initiative.owner.email || '?').charAt(0).toUpperCase()}
+    <Link href={`/initiatives/${initiative.id}`}>
+      <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-violet-400/50 hover:shadow-sm transition-all cursor-pointer group">
+        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[initiative.status] ?? 'bg-gray-300'}`} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate group-hover:text-violet-600 transition-colors">{initiative.name}</p>
+          {initiative.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{initiative.description}</p>}
+          {progress > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="w-32 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-violet-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <span className="text-[10px] text-muted-foreground">{progress}%</span>
             </div>
-            <span className="hidden sm:block">{initiative.owner.full_name?.split(' ')[0] || 'Owner'}</span>
-          </div>
-        )}
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[initiative.status] ?? 'bg-gray-100 text-gray-600'}`}>
-          {initiative.status}
-        </span>
-        <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {epicCount > 0 && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Layers className="w-3 h-3" />
+              {epicCount} epic{epicCount !== 1 ? 's' : ''}
+            </div>
+          )}
+          {initiative.target_date && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="w-3 h-3" />
+              {new Date(initiative.target_date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </div>
+          )}
+          {initiative.owner && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold">
+                {(initiative.owner.full_name || initiative.owner.email || '?').charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:block">{initiative.owner.full_name?.split(' ')[0] || 'Owner'}</span>
+            </div>
+          )}
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[initiative.status] ?? 'bg-gray-100 text-gray-600'}`}>
+            {initiative.status}
+          </span>
+          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+        </div>
       </div>
-    </div>
+    </Link>
   )
 }
 

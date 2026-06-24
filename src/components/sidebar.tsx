@@ -17,9 +17,11 @@ import {
   Compass,
   Briefcase,
   Lock,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
+import { HierarchyDropdown } from '@/components/hierarchy-dropdown'
 
 interface NavItemProps {
   href: string
@@ -42,14 +44,17 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
       style={{ height: '100vh' }}
     >
       <div className="flex flex-col px-4 pt-4 pb-3 border-b border-[#222] shrink-0">
-        <Image
-          src="/images/kutlerri-logo.png"
-          alt="Kutlerri"
-          width={120}
-          height={30}
-          className="h-8 w-auto object-contain object-left"
-          priority
-        />
+        <div className="flex items-center justify-between gap-2">
+          <Image
+            src="/images/kutlerri-logo.png"
+            alt="Kutlerri"
+            width={100}
+            height={25}
+            className="h-7 w-auto object-contain object-left"
+            priority
+          />
+          <HierarchyDropdown role={role} />
+        </div>
         <span className="text-xs text-white/80 truncate mt-2">{userName || 'Workspace User'}</span>
         <span className="text-[10px] text-white/30 truncate mt-1">{userEmail}</span>
       </div>
@@ -79,6 +84,7 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
 
         {(isNavItemVisible(role, 'initiatives') ||
           isNavItemVisible(role, 'epics') ||
+          isNavItemVisible(role, 'stories') ||
           isNavItemVisible(role, 'projects') ||
           isNavItemVisible(role, 'cycles') ||
           isNavItemVisible(role, 'roadmap') ||
@@ -88,6 +94,7 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
 
         {(isNavItemVisible(role, 'initiatives') ||
           isNavItemVisible(role, 'epics') ||
+          isNavItemVisible(role, 'stories') ||
           isNavItemVisible(role, 'projects') ||
           isNavItemVisible(role, 'cycles') ||
           isNavItemVisible(role, 'roadmap') ||
@@ -101,6 +108,9 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
                 <NavItem href="/initiatives" icon={<Compass className="w-4 h-4" />} label="Initiatives" />
               )}
               {isNavItemVisible(role, 'epics') && <NavItem href="/epics" icon={<Layers className="w-4 h-4" />} label="Epics" />}
+              {isNavItemVisible(role, 'stories') && (
+                <NavItem href="/stories" icon={<BookOpen className="w-4 h-4" />} label="Stories" />
+              )}
               {isNavItemVisible(role, 'projects') && (
                 <NavItem href="/projects" icon={<Briefcase className="w-4 h-4" />} label="Projects" />
               )}

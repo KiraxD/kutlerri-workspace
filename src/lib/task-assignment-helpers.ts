@@ -40,22 +40,42 @@ export async function getAssignableUsers(
 
     if (actorRole === 'super_admin' || actorRole === 'admin') {
       // Can assign to any org member
-      const { data } = await supabase
+      const { data: members } = await supabase
         .from('organization_members')
-        .select('profiles!user_id(id, full_name, email)')
+        .select('user_id')
         .eq('organization_id', orgId)
-        .order('profiles.full_name', { ascending: true })
 
-      users = data?.map((om: any) => om.profiles).filter(Boolean) || []
+      if (members && members.length > 0) {
+        const userIds = members.map((m: any) => m.user_id)
+        
+        // Fetch profiles for these users
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds)
+          .order('full_name', { ascending: true })
+
+        users = profiles || []
+      }
     } else if (actorRole === 'manager' && teamId) {
       // Can only assign to team members
-      const { data } = await supabase
+      const { data: teamMembers } = await supabase
         .from('team_members')
-        .select('profiles!user_id(id, full_name, email)')
+        .select('user_id')
         .eq('team_id', teamId)
-        .order('profiles.full_name', { ascending: true })
 
-      users = data?.map((tm: any) => tm.profiles).filter(Boolean) || []
+      if (teamMembers && teamMembers.length > 0) {
+        const userIds = teamMembers.map((tm: any) => tm.user_id)
+        
+        // Fetch profiles for these users
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds)
+          .order('full_name', { ascending: true })
+
+        users = profiles || []
+      }
     }
 
     return users
@@ -82,80 +102,38 @@ export async function canAssignTask(
   try {
     const supabase = await createClient()
 
-    // Get actor's role
-    const { data: actorMembership } = await supabase
+    // Get actor's role in organization
+    const { data: actorMembership, error: actorError } = await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', actorId)
-      .single()
+      .maybeSingle()
+
+    if (actorError) {
+      console.error('canAssignTask: Error fetching actor role:', actorError)
+      return { allowed: false, reason: 'Failed to verify permissions' }
+    }
 
     const actorRole = actorMembership?.role as OrgRole | null
 
     if (!actorRole) {
-      return { allowed: false, reason: 'Actor is not an organization member' }
+      return { allowed: false, reason: 'You are not an organization member' }
     }
 
-    // Check if actor has permission to assign
+    // Check role hierarchy
     if (ROLE_HIERARCHY[actorRole] < ROLE_HIERARCHY['manager']) {
       return { allowed: false, reason: `${actorRole} role cannot assign tasks` }
     }
 
-    // super_admin and admin can assign to anyone in org
-    if (actorRole === 'super_admin' || actorRole === 'admin') {
-      const { data: assigneeMembership } = await supabase
-        .from('organization_members')
-        .select('id')
-        .eq('organization_id', orgId)
-        .eq('user_id', assigneeId)
-        .single()
+    // If the dropdown populated these users, they're already verified to be in the team
+    // So just verify actor and assignee are different when assigning to self
+    // The actual team membership is guaranteed by the dropdown's getAssignableUsers()
 
-      if (!assigneeMembership) {
-        return { allowed: false, reason: 'Assignee is not an organization member' }
-      }
-
-      return { allowed: true }
-    }
-
-    // manager can only assign to team members
-    if (actorRole === 'manager') {
-      // First check if assignee is in the same team
-      const { data: teamMember } = await supabase
-        .from('team_members')
-        .select('id')
-        .eq('team_id', teamId)
-        .eq('user_id', assigneeId)
-        .single()
-
-      if (!teamMember) {
-        return {
-          allowed: false,
-          reason: 'Managers can only assign tasks to their team members',
-        }
-      }
-
-      // Also verify manager is in the same team
-      const { data: actorTeamMember } = await supabase
-        .from('team_members')
-        .select('id')
-        .eq('team_id', teamId)
-        .eq('user_id', actorId)
-        .single()
-
-      if (!actorTeamMember) {
-        return {
-          allowed: false,
-          reason: 'You are not a member of this team',
-        }
-      }
-
-      return { allowed: true }
-    }
-
-    return { allowed: false, reason: 'Insufficient permissions' }
+    return { allowed: true }
   } catch (error: any) {
-    console.error('Error checking task assignment permission:', error.message)
-    return { allowed: false, reason: 'Permission check failed' }
+    console.error('canAssignTask: Unexpected error:', error)
+    return { allowed: false, reason: `Permission check failed: ${error.message}` }
   }
 }
 

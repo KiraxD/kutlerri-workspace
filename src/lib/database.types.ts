@@ -238,6 +238,9 @@ export type Database = {
           name: string
           organization_id: string
           owner_id: string | null
+          priority: Database["public"]["Enums"]["work_priority"] | null
+          progress: number | null
+          start_date: string | null
           status: Database["public"]["Enums"]["task_status"] | null
           target_date: string | null
           updated_at: string
@@ -250,6 +253,9 @@ export type Database = {
           name: string
           organization_id: string
           owner_id?: string | null
+          priority?: Database["public"]["Enums"]["work_priority"] | null
+          progress?: number | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"] | null
           target_date?: string | null
           updated_at?: string
@@ -262,6 +268,9 @@ export type Database = {
           name?: string
           organization_id?: string
           owner_id?: string | null
+          priority?: Database["public"]["Enums"]["work_priority"] | null
+          progress?: number | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"] | null
           target_date?: string | null
           updated_at?: string
@@ -330,6 +339,9 @@ export type Database = {
           name: string
           organization_id: string
           owner_id: string | null
+          priority: Database["public"]["Enums"]["work_priority"] | null
+          progress: number | null
+          start_date: string | null
           status: Database["public"]["Enums"]["task_status"] | null
           target_date: string | null
           updated_at: string
@@ -341,6 +353,9 @@ export type Database = {
           name: string
           organization_id: string
           owner_id?: string | null
+          priority?: Database["public"]["Enums"]["work_priority"] | null
+          progress?: number | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"] | null
           target_date?: string | null
           updated_at?: string
@@ -352,6 +367,9 @@ export type Database = {
           name?: string
           organization_id?: string
           owner_id?: string | null
+          priority?: Database["public"]["Enums"]["work_priority"] | null
+          progress?: number | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"] | null
           target_date?: string | null
           updated_at?: string
@@ -366,6 +384,89 @@ export type Database = {
           },
           {
             foreignKeyName: "initiatives_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stories: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          epic_id: string | null
+          estimate: number | null
+          id: string
+          name: string
+          organization_id: string
+          owner_id: string | null
+          priority: Database["public"]["Enums"]["work_priority"] | null
+          progress: number | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["task_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          epic_id?: string | null
+          estimate?: number | null
+          id?: string
+          name: string
+          organization_id: string
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["work_priority"] | null
+          progress?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          epic_id?: string | null
+          estimate?: number | null
+          id?: string
+          name?: string
+          organization_id?: string
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["work_priority"] | null
+          progress?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["task_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stories_epic_id_fkey"
+            columns: ["epic_id"]
+            isOneToOne: false
+            referencedRelation: "epics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stories_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -795,27 +896,36 @@ export type Database = {
       sub_tasks: {
         Row: {
           assignee_id: string | null
+          completed_at: string | null
           created_at: string
+          due_date: string | null
           id: string
           name: string
+          priority: Database["public"]["Enums"]["work_priority"] | null
           status: Database["public"]["Enums"]["task_status"] | null
           task_id: string
           updated_at: string
         }
         Insert: {
           assignee_id?: string | null
+          completed_at?: string | null
           created_at?: string
+          due_date?: string | null
           id?: string
           name: string
+          priority?: Database["public"]["Enums"]["work_priority"] | null
           status?: Database["public"]["Enums"]["task_status"] | null
           task_id: string
           updated_at?: string
         }
         Update: {
           assignee_id?: string | null
+          completed_at?: string | null
           created_at?: string
+          due_date?: string | null
           id?: string
           name?: string
+          priority?: Database["public"]["Enums"]["work_priority"] | null
           status?: Database["public"]["Enums"]["task_status"] | null
           task_id?: string
           updated_at?: string
@@ -913,14 +1023,18 @@ export type Database = {
           creator_id: string
           cycle_id: string | null
           description: string | null
+          due_date: string | null
           epic_id: string | null
           estimate: number | null
           id: string
           identifier: string
           number: number
           priority: Database["public"]["Enums"]["issue_priority"]
+          progress: number | null
           project_id: string | null
+          start_date: string | null
           status: Database["public"]["Enums"]["task_status"]
+          story_id: string | null
           team_id: string
           title: string
           updated_at: string
@@ -931,14 +1045,18 @@ export type Database = {
           creator_id: string
           cycle_id?: string | null
           description?: string | null
+          due_date?: string | null
           epic_id?: string | null
           estimate?: number | null
           id?: string
           identifier: string
           number: number
           priority?: Database["public"]["Enums"]["issue_priority"]
+          progress?: number | null
           project_id?: string | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          story_id?: string | null
           team_id: string
           title: string
           updated_at?: string
@@ -949,14 +1067,18 @@ export type Database = {
           creator_id?: string
           cycle_id?: string | null
           description?: string | null
+          due_date?: string | null
           epic_id?: string | null
           estimate?: number | null
           id?: string
           identifier?: string
           number?: number
           priority?: Database["public"]["Enums"]["issue_priority"]
+          progress?: number | null
           project_id?: string | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          story_id?: string | null
           team_id?: string
           title?: string
           updated_at?: string
@@ -1002,6 +1124,13 @@ export type Database = {
             columns: ["epic_id"]
             isOneToOne: false
             referencedRelation: "epics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
             referencedColumns: ["id"]
           },
         ]
@@ -1414,6 +1543,7 @@ export type Database = {
         | "Done"
         | "Cancelled"
       team_member_role: "team_lead" | "senior_member" | "member" | "guest"
+      work_priority: "None" | "Low" | "Medium" | "High" | "Urgent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1573,6 +1703,7 @@ export const Constants = {
         "Cancelled",
       ],
       team_member_role: ["team_lead", "senior_member", "member", "guest"],
+      work_priority: ["None", "Low", "Medium", "High", "Urgent"],
     },
   },
 } as const

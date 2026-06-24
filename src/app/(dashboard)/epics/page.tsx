@@ -1,31 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import { Layers, Plus, ArrowRight, Target, Compass, Calendar, GitBranch } from 'lucide-react'
+import { Layers, Plus, ArrowRight, Target, Compass, Calendar, GitBranch, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { STATUS_STYLES, STATUS_DOT } from '@/lib/types'
 
-const STATUS_STYLES: Record<string, string> = {
-  Backlog: 'bg-gray-100 text-gray-500',
-  Ready: 'bg-sky-100 text-sky-700',
-  Todo: 'bg-gray-100 text-gray-600',
-  'In Progress': 'bg-yellow-100 text-yellow-700',
-  Review: 'bg-blue-100 text-blue-700',
-  Testing: 'bg-purple-100 text-purple-700',
-  Blocked: 'bg-red-100 text-red-600',
-  Done: 'bg-green-100 text-green-700',
-  Cancelled: 'bg-gray-100 text-gray-400',
-}
-
-const STATUS_DOT: Record<string, string> = {
-  Backlog: 'bg-gray-300',
-  Ready: 'bg-sky-400',
-  Todo: 'bg-gray-400',
-  'In Progress': 'bg-yellow-400',
-  Review: 'bg-blue-400',
-  Testing: 'bg-purple-400',
-  Blocked: 'bg-red-500',
-  Done: 'bg-green-500',
-  Cancelled: 'bg-gray-200',
-}
 
 export default async function EpicsPage() {
   const supabase = await createClient()
@@ -48,11 +26,16 @@ export default async function EpicsPage() {
   }
 
   const taskCounts: Record<string, number> = {}
+  const storyCounts: Record<string, number> = {}
   if (epics.length > 0) {
     const epicIds = epics.map((epic: any) => epic.id)
     const { data: tasks } = await supabase.from('tasks').select('epic_id').in('epic_id', epicIds)
     tasks?.forEach((task: any) => {
       if (task.epic_id) taskCounts[task.epic_id] = (taskCounts[task.epic_id] || 0) + 1
+    })
+    const { data: stories } = await supabase.from('stories').select('epic_id').in('epic_id', epicIds)
+    stories?.forEach((story: any) => {
+      if (story.epic_id) storyCounts[story.epic_id] = (storyCounts[story.epic_id] || 0) + 1
     })
   }
 
@@ -98,6 +81,9 @@ export default async function EpicsPage() {
           <span className="text-muted-foreground">
             Total Tasks: <strong className="text-foreground">{Object.values(taskCounts).reduce((left, right) => left + right, 0)}</strong>
           </span>
+          <span className="text-muted-foreground">
+            Total Stories: <strong className="text-foreground">{Object.values(storyCounts).reduce((left, right) => left + right, 0)}</strong>
+          </span>
         </div>
       )}
 
@@ -140,7 +126,7 @@ export default async function EpicsPage() {
                 </div>
                 <div className="space-y-2">
                   {grouped[status].map((epic: any) => (
-                    <EpicRow key={epic.id} epic={epic} taskCount={taskCounts[epic.id] ?? 0} />
+                    <EpicRow key={epic.id} epic={epic} taskCount={taskCounts[epic.id] ?? 0} storyCount={storyCounts[epic.id] ?? 0} />
                   ))}
                 </div>
               </div>
@@ -152,45 +138,62 @@ export default async function EpicsPage() {
   )
 }
 
-function EpicRow({ epic, taskCount }: { epic: any; taskCount: number }) {
+function EpicRow({ epic, taskCount, storyCount }: { epic: any; taskCount: number; storyCount: number }) {
+  const progress = epic.progress ?? 0
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer group">
-      <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[epic.status] ?? 'bg-gray-300'}`} />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate group-hover:text-blue-600 transition-colors">{epic.name}</p>
-        <div className="flex items-center gap-3 mt-0.5">
-          {epic.initiative && (
+    <Link href={`/epics/${epic.id}`}>
+      <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer group">
+        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[epic.status] ?? 'bg-gray-300'}`} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate group-hover:text-blue-600 transition-colors">{epic.name}</p>
+          <div className="flex items-center gap-3 mt-0.5">
+            {epic.initiative && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Compass className="w-3 h-3" />
+                {epic.initiative.name}
+              </span>
+            )}
+            {epic.description && <span className="text-xs text-muted-foreground truncate">{epic.description}</span>}
+          </div>
+          {progress > 0 && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="w-32 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <span className="text-[10px] text-muted-foreground">{progress}%</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {storyCount > 0 && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Compass className="w-3 h-3" />
-              {epic.initiative.name}
+              <BookOpen className="w-3 h-3" />
+              {storyCount} stor{storyCount !== 1 ? 'ies' : 'y'}
             </span>
           )}
-          {epic.description && <span className="text-xs text-muted-foreground truncate">{epic.description}</span>}
+          {taskCount > 0 && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <GitBranch className="w-3 h-3" />
+              {taskCount} tasks
+            </span>
+          )}
+          {epic.target_date && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="w-3 h-3" />
+              {new Date(epic.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </div>
+          )}
+          {epic.owner && (
+            <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
+              {(epic.owner.full_name || epic.owner.email || '?').charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[epic.status] ?? 'bg-gray-100 text-gray-600'}`}>
+            {epic.status}
+          </span>
+          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
         </div>
       </div>
-      <div className="flex items-center gap-3 shrink-0">
-        {taskCount > 0 && (
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <GitBranch className="w-3 h-3" />
-            {taskCount} tasks
-          </span>
-        )}
-        {epic.target_date && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="w-3 h-3" />
-            {new Date(epic.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </div>
-        )}
-        {epic.owner && (
-          <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
-            {(epic.owner.full_name || epic.owner.email || '?').charAt(0).toUpperCase()}
-          </div>
-        )}
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[epic.status] ?? 'bg-gray-100 text-gray-600'}`}>
-          {epic.status}
-        </span>
-        <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
-      </div>
-    </div>
+    </Link>
   )
 }
