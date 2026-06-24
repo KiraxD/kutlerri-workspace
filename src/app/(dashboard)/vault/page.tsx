@@ -82,9 +82,11 @@ export default async function VaultPage() {
           </div>
         </div>
         {vaults.length > 0 && (
-          <Button size="sm" className="gap-2">
-            <Plus className="w-4 h-4" /> New Vault
-          </Button>
+          <Link href="/vault/new">
+            <Button size="sm" className="gap-2">
+              <Plus className="w-4 h-4" /> New Vault
+            </Button>
+          </Link>
         )}
       </div>
 
@@ -115,7 +117,9 @@ export default async function VaultPage() {
                 </div>
               ))}
             </div>
-            <Button>Create a Vault</Button>
+            <Link href="/vault/new">
+              <Button>Create a Vault</Button>
+            </Link>
           </div>
         ) : (
           <div className="space-y-6">

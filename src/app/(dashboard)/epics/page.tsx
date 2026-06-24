@@ -77,9 +77,11 @@ export default async function EpicsPage() {
             <p className="text-xs text-muted-foreground">Large bodies of work spanning multiple tasks</p>
           </div>
         </div>
-        <Button size="sm" className="gap-2">
-          <Plus className="w-4 h-4" /> New Epic
-        </Button>
+        <Link href="/epics/new">
+          <Button size="sm" className="gap-2">
+            <Plus className="w-4 h-4" /> New Epic
+          </Button>
+        </Link>
       </div>
 
       {epics.length > 0 && (
@@ -121,9 +123,11 @@ export default async function EpicsPage() {
                 </div>
               ))}
             </div>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" /> Create Epic
-            </Button>
+            <Link href="/epics/new">
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" /> Create Epic
+              </Button>
+            </Link>
           </div>
         ) : (
           <div className="space-y-8">

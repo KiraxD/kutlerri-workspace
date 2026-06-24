@@ -68,9 +68,11 @@ export default async function InitiativesPage() {
             <p className="text-xs text-muted-foreground">Strategic goals that drive epics and tasks</p>
           </div>
         </div>
-        <Button size="sm" className="gap-2">
-          <Plus className="w-4 h-4" /> New Initiative
-        </Button>
+        <Link href="/initiatives/new">
+          <Button size="sm" className="gap-2">
+            <Plus className="w-4 h-4" /> New Initiative
+          </Button>
+        </Link>
       </div>
 
       {initiatives.length > 0 && (
@@ -102,9 +104,11 @@ export default async function InitiativesPage() {
               { icon: <ArrowRight className="w-5 h-5 text-green-500" />, label: 'Linked to Epics' },
             ]}
             action={
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" /> Create Initiative
-              </Button>
+              <Link href="/initiatives/new">
+                <Button className="gap-2">
+                  <Plus className="w-4 h-4" /> Create Initiative
+                </Button>
+              </Link>
             }
             prereq={null}
           />
