@@ -90,19 +90,26 @@ export default async function ProjectsPage() {
               <Briefcase className="w-10 h-10 text-blue-400 opacity-60" />
             </div>
             <h2 className="text-xl font-semibold mb-2">No projects yet</h2>
-            <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
-              Projects organize your team's work. Create a team first, then create your first project.
-            </p>
             {teamIds.length === 0 ? (
-              <Link href="/teams">
-                <Button>Create a Team First</Button>
-              </Link>
+              <>
+                <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
+                  You're not part of any teams yet. Create a team first to organize your work.
+                </p>
+                <Link href="/teams">
+                  <Button>Create a Team</Button>
+                </Link>
+              </>
             ) : (
-              <Link href="/projects/new">
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" /> New Project
-                </Button>
-              </Link>
+              <>
+                <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
+                  Create your first project to organize your team's work.
+                </p>
+                <Link href="/projects/new">
+                  <Button className="gap-2">
+                    <Plus className="w-4 h-4" /> Create Project
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
         ) : (
