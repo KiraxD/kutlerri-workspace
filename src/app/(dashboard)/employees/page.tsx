@@ -81,6 +81,51 @@ export default function EmployeesPage() {
 
         setUserRole(orgMember.role as OrgRole)
         await loadEmployees()
+
+        // Set up real-time subscription for organization_members changes
+        const supabaseClient = createClient()
+        const channel = supabaseClient
+          .channel('organization_members_changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*', // Listen for INSERT, UPDATE, DELETE
+              schema: 'public',
+              table: 'organization_members',
+            },
+            () => {
+              // Reload employees when any changes occur
+              startTransition(() => {
+                void loadEmployees()
+              })
+            }
+          )
+          .subscribe()
+
+        // Also listen for profile changes (new users signing up)
+        const profileChannel = supabaseClient
+          .channel('profiles_changes')
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT', // Only listen for new profiles
+              schema: 'public',
+              table: 'profiles',
+            },
+            () => {
+              // Reload employees when new profiles are created
+              startTransition(() => {
+                void loadEmployees()
+              })
+            }
+          )
+          .subscribe()
+
+        // Cleanup subscriptions on unmount
+        return () => {
+          supabaseClient.removeChannel(channel)
+          supabaseClient.removeChannel(profileChannel)
+        }
       } catch (error) {
         console.error('Failed to initialize page:', error)
         setStatusMessage(`Failed to initialize: ${error instanceof Error ? error.message : 'Unknown error'}`)

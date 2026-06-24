@@ -3,7 +3,6 @@
 import { verifyPermission } from '@/lib/auth-helpers'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
 import { ROLE_HIERARCHY, type OrgRole } from '@/lib/permissions'
 import * as XLSX from 'xlsx'
 
@@ -195,7 +194,6 @@ export async function addEmployeeAction({
       return { success: false, error: memberError.message }
     }
 
-    revalidatePath('/employees')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -248,7 +246,6 @@ export async function updateEmployeeRoleAction({
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/employees')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -339,8 +336,6 @@ export async function importEmployeesAction(formData: FormData) {
         errors.push(`${row.email}: ${err.message}`)
       }
     }
-
-    revalidatePath('/employees')
 
     return {
       success: true,
