@@ -62,9 +62,11 @@ export default async function ProjectsPage() {
             <p className="text-xs text-muted-foreground">All projects across your teams</p>
           </div>
         </div>
-        <Button size="sm" className="gap-2">
-          <Plus className="w-4 h-4" /> New Project
-        </Button>
+        <Link href="/projects/new">
+          <Button size="sm" className="gap-2">
+            <Plus className="w-4 h-4" /> New Project
+          </Button>
+        </Link>
       </div>
 
       {projects.length > 0 && (
@@ -96,9 +98,11 @@ export default async function ProjectsPage() {
                 <Button>Create a Team First</Button>
               </Link>
             ) : (
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" /> New Project
-              </Button>
+              <Link href="/projects/new">
+                <Button className="gap-2">
+                  <Plus className="w-4 h-4" /> New Project
+                </Button>
+              </Link>
             )}
           </div>
         ) : (
