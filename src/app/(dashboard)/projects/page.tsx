@@ -123,10 +123,10 @@ export default async function ProjectsPage() {
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {grouped[status].map((project: any) => (
-                    <div
-                      key={project.id}
-                      className="border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group bg-card"
-                    >
+                    <Link key={project.id} href={`/projects/${project.id}`}>
+                      <div
+                        className="border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group bg-card"
+                      >
                       <div className="flex justify-between items-start mb-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                           {project.team?.identifier?.slice(0, 2) || 'PR'}
@@ -147,6 +147,7 @@ export default async function ProjectsPage() {
                         <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </div>
+                    </Link>
                   ))}
                 </div>
               </div>
