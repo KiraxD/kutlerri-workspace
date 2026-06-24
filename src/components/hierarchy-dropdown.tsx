@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronRight,
   GitBranch,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
@@ -78,18 +79,27 @@ export function HierarchyDropdown({ role }: HierarchyDropdownProps) {
           navKey: 'epics',
           children: [
             {
-              id: 'tasks',
-              label: 'Tasks',
-              href: '/my-tasks',
-              icon: <CheckCircle2 className="w-4 h-4 text-indigo-400" />,
-              navKey: 'my-tasks',
+              id: 'stories',
+              label: 'Stories',
+              href: '/stories',
+              icon: <BookOpen className="w-4 h-4 text-green-400" />,
+              navKey: 'stories',
               children: [
                 {
-                  id: 'subtasks',
-                  label: 'Sub Tasks',
+                  id: 'tasks',
+                  label: 'Tasks',
                   href: '/my-tasks',
-                  icon: <GitBranch className="w-4 h-4 text-violet-400 rotate-180" />,
+                  icon: <CheckCircle2 className="w-4 h-4 text-indigo-400" />,
                   navKey: 'my-tasks',
+                  children: [
+                    {
+                      id: 'subtasks',
+                      label: 'Sub Tasks',
+                      href: '/my-tasks',
+                      icon: <GitBranch className="w-4 h-4 text-violet-400 rotate-180" />,
+                      navKey: 'my-tasks',
+                    }
+                  ]
                 }
               ]
             }
