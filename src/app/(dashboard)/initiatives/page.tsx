@@ -106,13 +106,7 @@ export default async function InitiativesPage() {
                 <Plus className="w-4 h-4" /> Create Initiative
               </Button>
             }
-            prereq={
-              orgIds.length === 0 ? (
-                <Link href="/teams" className="text-sm text-primary hover:underline">
-                  Create a team first
-                </Link>
-              ) : null
-            }
+            prereq={null}
           />
         ) : (
           <div className="space-y-8">

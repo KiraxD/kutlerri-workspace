@@ -101,7 +101,7 @@ export default async function VaultPage() {
             </div>
             <h2 className="text-xl font-semibold mb-2">No vaults yet</h2>
             <p className="text-muted-foreground text-sm text-center max-w-sm mb-6">
-              Vaults are secure spaces to store, organize, and share documents with your team. Create a team first to get started.
+              Vaults are secure spaces to store, organize, and share documents. Create your first vault to get started.
             </p>
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               {[
@@ -115,9 +115,7 @@ export default async function VaultPage() {
                 </div>
               ))}
             </div>
-            <Link href="/teams">
-              <Button>Create a Team First</Button>
-            </Link>
+            <Button>Create a Vault</Button>
           </div>
         ) : (
           <div className="space-y-6">

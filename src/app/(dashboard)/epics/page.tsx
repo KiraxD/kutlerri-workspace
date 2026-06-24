@@ -121,15 +121,9 @@ export default async function EpicsPage() {
                 </div>
               ))}
             </div>
-            {orgIds.length === 0 ? (
-              <Link href="/teams" className="text-sm text-primary hover:underline">
-                Create a team first
-              </Link>
-            ) : (
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" /> Create Epic
-              </Button>
-            )}
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" /> Create Epic
+            </Button>
           </div>
         ) : (
           <div className="space-y-8">
