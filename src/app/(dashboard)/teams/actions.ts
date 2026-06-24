@@ -107,6 +107,49 @@ export async function getTeamsAction() {
   }
 }
 
+export async function getUserTeamsAction() {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, error: 'Not authenticated', teams: [] }
+    }
+
+    // Get all teams the user is a member of
+    const { data: teamMembers, error: tmError } = await supabase
+      .from('team_members')
+      .select('team_id')
+      .eq('user_id', user.id)
+
+    if (tmError) {
+      return { success: false, error: tmError.message, teams: [] }
+    }
+
+    if (!teamMembers || teamMembers.length === 0) {
+      return { success: true, teams: [] }
+    }
+
+    const teamIds = teamMembers.map((tm) => tm.team_id)
+
+    // Get team details
+    const { data: teams, error } = await supabase
+      .from('teams')
+      .select('id, name, description')
+      .in('id', teamIds)
+
+    if (error) {
+      return { success: false, error: error.message, teams: [] }
+    }
+
+    return { success: true, teams: teams || [] }
+  } catch (error: any) {
+    return { success: false, error: error.message, teams: [] }
+  }
+}
+
 export async function createTeamAction({
   name,
   description,

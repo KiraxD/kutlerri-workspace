@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { type OrgRole } from '@/lib/permissions'
 import {
   getTeamsAction,
+  getUserTeamsAction,
   createTeamAction,
   addTeamMemberAction,
   updateTeamMemberRoleAction,
@@ -97,10 +98,12 @@ export default function TeamsPage() {
           .limit(1)
           .single()
 
-        if (!orgMember) return
-        setUserRole(orgMember.role as OrgRole)
+        if (orgMember) {
+          setUserRole(orgMember.role as OrgRole)
+        }
 
-        const [teamsResult, employeesResult] = await Promise.all([getTeamsAction(), getEmployeesForTeamAction()])
+        // Get teams user is a member of (not just org-level teams)
+        const [teamsResult, employeesResult] = await Promise.all([getUserTeamsAction(), getEmployeesForTeamAction()])
 
         if (teamsResult.success && teamsResult.teams) {
           setTeams(teamsResult.teams)
