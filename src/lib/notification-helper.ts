@@ -10,6 +10,10 @@ export type NotificationType =
   | 'team_member_added'
   | 'task_comment'
   | 'task_mentioned'
+  | 'initiative_created'
+  | 'epic_created'
+  | 'project_created'
+  | 'vault_created'
 
 export async function createNotification({
   userId,

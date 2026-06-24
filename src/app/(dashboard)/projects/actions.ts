@@ -2,6 +2,7 @@
 
 import { verifyPermission } from '@/lib/auth-helpers'
 import { createClient } from '@/lib/supabase/server'
+import { createBulkNotifications } from '@/lib/notification-helper'
 
 export async function createProjectAction({
   teamId,
@@ -16,7 +17,7 @@ export async function createProjectAction({
   status?: string
   targetDate?: string
 }) {
-  const { orgId } = await verifyPermission('createProject')
+  const { orgId, userId } = await verifyPermission('createProject')
   const supabase = await createClient()
 
   // Verify the team belongs to the user's organization
@@ -43,6 +44,32 @@ export async function createProjectAction({
     .single()
 
   if (error) return { success: false, error: error.message }
+
+  // Notify team members about new project
+  if (project?.id) {
+    try {
+      const supabaseAdmin = await createClient()
+      const { data: members } = await supabaseAdmin
+        .from('team_members')
+        .select('user_id')
+        .eq('team_id', teamId)
+        .neq('user_id', userId)
+
+      if (members && members.length > 0) {
+        await createBulkNotifications(
+          members.map((m) => ({
+            type: 'project_created',
+            actorId: userId,
+            userId: m.user_id,
+            organizationId: orgId,
+          }))
+        )
+      }
+    } catch (err) {
+      console.error('Failed to create project notifications:', err)
+    }
+  }
+
   return { success: true, project }
 }
 
