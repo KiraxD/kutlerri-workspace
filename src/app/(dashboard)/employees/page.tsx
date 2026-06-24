@@ -230,14 +230,18 @@ export default function EmployeesPage() {
           <p className="text-muted-foreground text-sm mt-1">Manage members who already have Kutlerri accounts</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowImportForm((current) => !current)}>
-            <Download className="w-4 h-4" />
-            Import CSV
-          </Button>
-          <Button size="sm" className="gap-2" onClick={() => setShowAddForm((current) => !current)}>
-            <Plus className="w-4 h-4" />
-            Add Employee
-          </Button>
+          {isSuper && (
+            <>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowImportForm((current) => !current)}>
+                <Download className="w-4 h-4" />
+                Import CSV
+              </Button>
+              <Button size="sm" className="gap-2" onClick={() => setShowAddForm((current) => !current)}>
+                <Plus className="w-4 h-4" />
+                Add Employee
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -249,7 +253,7 @@ export default function EmployeesPage() {
             </div>
           )}
 
-          {showAddForm && (
+          {showAddForm && isSuper && (
             <div className="p-8 bg-card border border-border rounded-lg">
               <h3 className="text-2xl font-bold text-foreground mb-2">Add Existing User</h3>
               <p className="text-sm text-muted-foreground mb-6">The person must sign up first. This screen only assigns them to your organization.</p>
@@ -293,7 +297,7 @@ export default function EmployeesPage() {
             </div>
           )}
 
-          {showImportForm && (
+          {showImportForm && isSuper && (
             <div className="p-8 bg-card border border-border rounded-lg">
               <h3 className="text-2xl font-bold text-foreground mb-2">Import Existing Users</h3>
               <p className="text-sm text-muted-foreground mb-6">Upload a spreadsheet with `email` and optional `role` columns. Each user must already have signed up.</p>
@@ -374,17 +378,21 @@ export default function EmployeesPage() {
                           <RoleBadge role={employee.role} />
                         </td>
                         <td className="py-4 px-6">
-                          <select
-                            value={employee.role}
-                            onChange={(event) => handleRoleChange(employee.id, event.target.value as OrgRole)}
-                            className="px-3 py-1 border border-border rounded-md bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                          >
-                            <option value="viewer">Viewer</option>
-                            <option value="employee">Employee</option>
-                            <option value="manager">Manager</option>
-                            {isSuper && <option value="admin">Admin</option>}
-                            {isSuper && <option value="super_admin">Super Admin</option>}
-                          </select>
+                          {isSuper ? (
+                            <select
+                              value={employee.role}
+                              onChange={(event) => handleRoleChange(employee.id, event.target.value as OrgRole)}
+                              className="px-3 py-1 border border-border rounded-md bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent cursor-pointer"
+                            >
+                              <option value="viewer">Viewer</option>
+                              <option value="employee">Employee</option>
+                              <option value="manager">Manager</option>
+                              <option value="admin">Admin</option>
+                              <option value="super_admin">Super Admin</option>
+                            </select>
+                          ) : (
+                            <p className="text-muted-foreground text-sm">Only Super Admin can change roles</p>
+                          )}
                         </td>
                       </tr>
                     ))

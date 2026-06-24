@@ -9,8 +9,8 @@ import * as XLSX from 'xlsx'
 
 const ASSIGNABLE_ROLES: Record<OrgRole, OrgRole[]> = {
   super_admin: ['super_admin', 'admin', 'manager', 'employee', 'viewer'],
-  admin: ['manager', 'employee', 'viewer'],
-  manager: ['employee', 'viewer'],
+  admin: [],
+  manager: [],
   employee: [],
   viewer: [],
 }
@@ -157,6 +157,11 @@ export async function addEmployeeAction({
       return { success: false, error: 'Role not found' }
     }
 
+    // Only super_admin can add employees
+    if (userRole !== 'super_admin') {
+      return { success: false, error: 'Only Super Admin can add employees' }
+    }
+
     if (!canAssignRole(userRole, role)) {
       return { success: false, error: 'You do not have permission to assign that role' }
     }
@@ -215,6 +220,11 @@ export async function updateEmployeeRoleAction({
       return { success: false, error: 'Role not found' }
     }
 
+    // Only super_admin can change roles
+    if (userRole !== 'super_admin') {
+      return { success: false, error: 'Only Super Admin can change employee roles' }
+    }
+
     if (!canAssignRole(userRole, newRole)) {
       return { success: false, error: 'You do not have permission to assign that role' }
     }
@@ -255,6 +265,11 @@ export async function importEmployeesAction(formData: FormData) {
 
     if (!userRole) {
       return { success: false, error: 'Role not found' }
+    }
+
+    // Only super_admin can import employees
+    if (userRole !== 'super_admin') {
+      return { success: false, error: 'Only Super Admin can import employees' }
     }
 
     const file = formData.get('file') as File
