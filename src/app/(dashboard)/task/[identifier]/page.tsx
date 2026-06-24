@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { TaskAssignmentDisplay } from '@/components/task-assignment-display'
 import {
   AlertCircle,
   ArrowDown,
@@ -92,17 +93,13 @@ export default async function TaskDetailPage({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground w-24">Assignee</span>
-                <div className="flex items-center gap-2 flex-1 justify-start">
-                  <Avatar className="h-5 w-5">
-                    <AvatarFallback className="text-[10px]">
-                      {task.assignee ? task.assignee.email[0].toUpperCase() : 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>{task.assignee?.full_name || task.assignee?.email || 'Unassigned'}</span>
-                </div>
-              </div>
+              <TaskAssignmentDisplay
+                taskId={task.id}
+                teamId={task.team_id}
+                currentAssigneeId={task.assignee_id}
+                currentAssigneeName={task.assignee?.full_name}
+                currentAssigneeEmail={task.assignee?.email}
+              />
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground w-24">Priority</span>

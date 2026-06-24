@@ -66,6 +66,25 @@ export async function assignTaskAction({
 
     const supabase = await createClient()
 
+    // Get task to find team_id
+    const { data: task, error: taskError } = await supabase
+      .from('tasks')
+      .select('team_id')
+      .eq('id', taskId)
+      .single()
+
+    if (taskError || !task) {
+      return { success: false, error: 'Task not found' }
+    }
+
+    // Verify hierarchical assignment permissions
+    const { canAssignTask } = await import('@/lib/task-assignment-helpers')
+    const { allowed, reason } = await canAssignTask(userId, orgId, task.team_id, assigneeId)
+
+    if (!allowed) {
+      return { success: false, error: reason || 'You do not have permission to assign this task' }
+    }
+
     const { error } = await supabase
       .from('tasks')
       .update({ assignee_id: assigneeId })
@@ -112,3 +131,19 @@ export async function unassignTaskAction({ taskId }: { taskId: string }) {
     return { success: false, error: error.message }
   }
 }
+
+/**
+ * Get list of users that can be assigned a task
+ * Based on hierarchical permissions
+ */
+export async function getTaskAssignees(teamId: string) {
+  try {
+    const { userId, orgId } = await verifyPermission('assignTask')
+    const { getAssignableUsers } = await import('@/lib/task-assignment-helpers')
+    
+    return await getAssignableUsers(userId, orgId, teamId)
+  } catch (error: any) {
+    return []
+  }
+}
+
