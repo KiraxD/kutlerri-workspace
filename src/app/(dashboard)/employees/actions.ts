@@ -87,21 +87,31 @@ export async function getEmployeesAction() {
       return { success: false, error: 'Role not found', employees: [] }
     }
 
-    const { data: members } = await supabase
+    const { data: members, error: membersError } = await supabase
       .from('organization_members')
       .select('user_id, role')
       .eq('organization_id', orgId)
       .order('created_at', { ascending: true })
+
+    if (membersError) {
+      console.error('Error fetching members:', membersError)
+      return { success: false, error: `Failed to fetch members: ${membersError.message}`, employees: [] }
+    }
 
     if (!members || members.length === 0) {
       return { success: true, employees: [] }
     }
 
     const userIds = members.map((member) => member.user_id)
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, email, full_name')
       .in('id', userIds)
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError)
+      return { success: false, error: `Failed to fetch profiles: ${profilesError.message}`, employees: [] }
+    }
 
     const profileMap = new Map(profiles?.map((profile) => [profile.id, profile]) || [])
 
@@ -124,7 +134,8 @@ export async function getEmployeesAction() {
 
     return { success: true, employees }
   } catch (error: any) {
-    return { success: false, error: error.message, employees: [] }
+    console.error('getEmployeesAction error:', error)
+    return { success: false, error: error.message || 'Unknown error fetching employees', employees: [] }
   }
 }
 

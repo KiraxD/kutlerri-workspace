@@ -32,14 +32,19 @@ export default function EmployeesPage() {
   })
 
   const loadEmployees = async () => {
-    const result = await getEmployeesAction()
-    if (result.success && result.employees) {
-      setEmployees(result.employees)
-      setStatusMessage(null)
-      return
-    }
+    try {
+      const result = await getEmployeesAction()
+      if (result.success && result.employees) {
+        setEmployees(result.employees)
+        setStatusMessage(null)
+        return
+      }
 
-    setStatusMessage(result.error || 'Failed to load employees')
+      setStatusMessage(result.error || 'Failed to load employees')
+    } catch (error: any) {
+      console.error('Error loading employees:', error)
+      setStatusMessage(error?.message || 'Failed to load employees')
+    }
   }
 
   useEffect(() => {
@@ -50,22 +55,34 @@ export default function EmployeesPage() {
           data: { user },
         } = await supabase.auth.getUser()
 
-        if (!user) return
+        if (!user) {
+          setStatusMessage('Not authenticated')
+          return
+        }
 
-        const { data: orgMember } = await supabase
+        const { data: orgMember, error: orgError } = await supabase
           .from('organization_members')
           .select('role')
           .eq('user_id', user.id)
           .limit(1)
           .single()
 
-        if (!orgMember) return
+        if (orgError) {
+          console.error('Error fetching org member:', orgError)
+          setStatusMessage(`Error fetching role: ${orgError.message}`)
+          return
+        }
+
+        if (!orgMember) {
+          setStatusMessage('No organization membership found')
+          return
+        }
 
         setUserRole(orgMember.role as OrgRole)
         await loadEmployees()
       } catch (error) {
         console.error('Failed to initialize page:', error)
-        setStatusMessage('Failed to initialize employee management')
+        setStatusMessage(`Failed to initialize: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     }
 
