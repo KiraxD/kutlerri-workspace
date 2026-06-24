@@ -2,10 +2,12 @@
 
 import { startTransition, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { type OrgRole } from '@/lib/permissions'
 import {
   getTeamsAction,
+  createTeamAction,
   addTeamMemberAction,
   updateTeamMemberRoleAction,
   removeTeamMemberAction,
@@ -42,8 +44,10 @@ export default function TeamsPage() {
   const [userRole, setUserRole] = useState<OrgRole | null>(null)
   const [availableEmployees, setAvailableEmployees] = useState<Array<{ id: string; email: string; full_name: string | null }>>([])
   const [showAddMember, setShowAddMember] = useState(false)
+  const [showCreateTeam, setShowCreateTeam] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState('')
   const [selectedTeamRole, setSelectedTeamRole] = useState<TeamMember['role']>('member')
+  const [newTeamData, setNewTeamData] = useState({ name: '', description: '', identifier: '' })
 
   async function fetchTeamMembers(teamId: string) {
     try {
@@ -191,6 +195,33 @@ export default function TeamsPage() {
     }
   }
 
+  const handleCreateTeam = async () => {
+    if (!newTeamData.name || !newTeamData.identifier) return
+
+    setLoading(true)
+    try {
+      const result = await createTeamAction({
+        name: newTeamData.name,
+        description: newTeamData.description,
+        identifier: newTeamData.identifier,
+      })
+
+      if (result.success) {
+        setNewTeamData({ name: '', description: '', identifier: '' })
+        setShowCreateTeam(false)
+        startTransition(() => {
+          void getTeamsAction().then((res) => {
+            if (res.success) {
+              setTeams(res.teams)
+            }
+          })
+        })
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const canManageTeams = userRole === 'super_admin' || userRole === 'admin' || userRole === 'manager'
 
   if (!canManageTeams) {
@@ -222,9 +253,53 @@ export default function TeamsPage() {
         <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
             <div className="bg-card border border-border rounded-lg overflow-hidden sticky top-8">
-              <div className="p-4 border-b border-border bg-muted/30">
+              <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
                 <h3 className="text-foreground font-semibold">Your Teams</h3>
+                <Button
+                  onClick={() => setShowCreateTeam((current) => !current)}
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1 h-7"
+                  title="Create new team"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
+
+              {showCreateTeam && (
+                <div className="p-4 border-b border-border bg-muted/20 space-y-3">
+                  <Input
+                    placeholder="Team name"
+                    value={newTeamData.name}
+                    onChange={(e) => setNewTeamData({ ...newTeamData, name: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Identifier (e.g., ENG)"
+                    value={newTeamData.identifier}
+                    onChange={(e) => setNewTeamData({ ...newTeamData, identifier: e.target.value.toUpperCase() })}
+                  />
+                  <textarea
+                    placeholder="Description (optional)"
+                    value={newTeamData.description}
+                    onChange={(e) => setNewTeamData({ ...newTeamData, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent min-h-16"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleCreateTeam}
+                      disabled={loading || !newTeamData.name || !newTeamData.identifier}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      {loading ? 'Creating...' : 'Create'}
+                    </Button>
+                    <Button onClick={() => setShowCreateTeam(false)} variant="outline" size="sm" className="flex-1">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="p-3 max-h-96 overflow-y-auto">
                 {teams.length === 0 ? (
                   <p className="text-muted-foreground text-sm py-4 text-center">No teams yet</p>

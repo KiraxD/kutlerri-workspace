@@ -1,7 +1,6 @@
 ﻿'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
 import { verifyPermission } from '@/lib/auth-helpers'
 
 export async function createTeamAndOrg(formData: FormData) {
@@ -77,7 +76,6 @@ export async function createTeamAndOrg(formData: FormData) {
     role: 'team_lead',
   })
 
-  revalidatePath('/teams')
   return team
 }
 
@@ -99,6 +97,41 @@ export async function getTeamsAction() {
     return { success: true, teams: teams || [] }
   } catch (error: any) {
     return { success: false, error: error.message, teams: [] }
+  }
+}
+
+export async function createTeamAction({
+  name,
+  description,
+  identifier,
+}: {
+  name: string
+  description?: string
+  identifier: string
+}) {
+  try {
+    const { orgId } = await verifyPermission('manageTeams')
+
+    const supabase = await createClient()
+
+    const { data: team, error } = await supabase
+      .from('teams')
+      .insert({
+        organization_id: orgId,
+        name,
+        description: description || null,
+        identifier: identifier.toUpperCase(),
+      })
+      .select()
+      .single()
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, team }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }
 
@@ -153,7 +186,6 @@ export async function addTeamMemberAction({
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/teams')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -184,7 +216,6 @@ export async function updateTeamMemberRoleAction({
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/teams')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -213,7 +244,6 @@ export async function removeTeamMemberAction({
       return { success: false, error: error.message }
     }
 
-    revalidatePath('/teams')
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
