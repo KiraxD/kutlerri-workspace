@@ -4,9 +4,19 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  Inbox, Search, Settings, Star, Users, Target,
-  Route, CheckCircle2, Home, Layers, Compass,
-  Briefcase, Lock, MoreHorizontal,
+  Inbox,
+  Search,
+  Settings,
+  Star,
+  Users,
+  Target,
+  Route,
+  CheckCircle2,
+  Home,
+  Layers,
+  Compass,
+  Briefcase,
+  Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
@@ -27,9 +37,10 @@ interface SidebarProps {
 
 export function Sidebar({ userName, userEmail, role }: SidebarProps) {
   return (
-    <aside className="w-[240px] flex-shrink-0 flex flex-col z-20 bg-[#0d0d0d] border-r border-[#222]" style={{ height: '100vh' }}>
-
-      {/* Logo Header */}
+    <aside
+      className="w-[240px] flex-shrink-0 flex flex-col z-20 bg-[#0d0d0d] border-r border-[#222]"
+      style={{ height: '100vh' }}
+    >
       <div className="flex flex-col px-4 pt-4 pb-3 border-b border-[#222] shrink-0">
         <Image
           src="/images/kutlerri-logo.png"
@@ -39,34 +50,24 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
           className="h-8 w-auto object-contain object-left"
           priority
         />
-        <span className="text-[10px] text-white/30 truncate mt-1.5">{userEmail}</span>
+        <span className="text-xs text-white/80 truncate mt-2">{userName || 'Workspace User'}</span>
+        <span className="text-[10px] text-white/30 truncate mt-1">{userEmail}</span>
       </div>
 
-      {/* Navigation — scrollable */}
       <nav className="flex-1 overflow-y-auto py-3 min-h-0" style={{ scrollbarWidth: 'none' }}>
-
-        {/* Main */}
         <div className="px-2 mb-1 space-y-0.5">
           {isNavItemVisible(role, 'search') && (
-            <NavItem href="/search" icon={<Search className="w-4 h-4" />} label="Search" shortcut="⌘K" />
+            <NavItem href="/search" icon={<Search className="w-4 h-4" />} label="Search" shortcut="Cmd+K" />
           )}
-          {isNavItemVisible(role, 'home') && (
-            <NavItem href="/home" icon={<Home className="w-4 h-4" />} label="Home" />
-          )}
-          {isNavItemVisible(role, 'inbox') && (
-            <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />
-          )}
+          {isNavItemVisible(role, 'home') && <NavItem href="/home" icon={<Home className="w-4 h-4" />} label="Home" />}
+          {isNavItemVisible(role, 'inbox') && <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />}
           {isNavItemVisible(role, 'my-tasks') && (
             <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
           )}
         </div>
 
-        {/* Divider */}
-        {isNavItemVisible(role, 'favorites') && (
-          <div className="mx-4 my-2 border-t border-[#222]" />
-        )}
+        {isNavItemVisible(role, 'favorites') && <div className="mx-4 my-2 border-t border-[#222]" />}
 
-        {/* Your Space */}
         {isNavItemVisible(role, 'favorites') && (
           <div className="px-2 mb-1">
             <p className="text-[10px] font-semibold text-white/25 px-2 pb-1 uppercase tracking-widest">Your Space</p>
@@ -76,7 +77,6 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
           </div>
         )}
 
-        {/* Divider */}
         {(isNavItemVisible(role, 'initiatives') ||
           isNavItemVisible(role, 'epics') ||
           isNavItemVisible(role, 'projects') ||
@@ -84,11 +84,8 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
           isNavItemVisible(role, 'roadmap') ||
           isNavItemVisible(role, 'vault') ||
           isNavItemVisible(role, 'teams') ||
-          isNavItemVisible(role, 'employees')) && (
-          <div className="mx-4 my-2 border-t border-[#222]" />
-        )}
+          isNavItemVisible(role, 'employees')) && <div className="mx-4 my-2 border-t border-[#222]" />}
 
-        {/* Workspace */}
         {(isNavItemVisible(role, 'initiatives') ||
           isNavItemVisible(role, 'epics') ||
           isNavItemVisible(role, 'projects') ||
@@ -103,34 +100,22 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
               {isNavItemVisible(role, 'initiatives') && (
                 <NavItem href="/initiatives" icon={<Compass className="w-4 h-4" />} label="Initiatives" />
               )}
-              {isNavItemVisible(role, 'epics') && (
-                <NavItem href="/epics" icon={<Layers className="w-4 h-4" />} label="Epics" />
-              )}
+              {isNavItemVisible(role, 'epics') && <NavItem href="/epics" icon={<Layers className="w-4 h-4" />} label="Epics" />}
               {isNavItemVisible(role, 'projects') && (
                 <NavItem href="/projects" icon={<Briefcase className="w-4 h-4" />} label="Projects" />
               )}
-              {isNavItemVisible(role, 'cycles') && (
-                <NavItem href="/cycles" icon={<Target className="w-4 h-4" />} label="Cycles" />
-              )}
-              {isNavItemVisible(role, 'roadmap') && (
-                <NavItem href="/roadmap" icon={<Route className="w-4 h-4" />} label="Roadmap" />
-              )}
-              {isNavItemVisible(role, 'vault') && (
-                <NavItem href="/vault" icon={<Lock className="w-4 h-4" />} label="Vault" />
-              )}
-              {isNavItemVisible(role, 'teams') && (
-                <NavItem href="/teams" icon={<Users className="w-4 h-4" />} label="Teams" />
-              )}
+              {isNavItemVisible(role, 'cycles') && <NavItem href="/cycles" icon={<Target className="w-4 h-4" />} label="Cycles" />}
+              {isNavItemVisible(role, 'roadmap') && <NavItem href="/roadmap" icon={<Route className="w-4 h-4" />} label="Roadmap" />}
+              {isNavItemVisible(role, 'vault') && <NavItem href="/vault" icon={<Lock className="w-4 h-4" />} label="Vault" />}
+              {isNavItemVisible(role, 'teams') && <NavItem href="/teams" icon={<Users className="w-4 h-4" />} label="Teams" />}
               {isNavItemVisible(role, 'employees') && (
                 <NavItem href="/employees" icon={<Users className="w-4 h-4" />} label="Employees" />
               )}
             </div>
           </div>
         )}
-
       </nav>
 
-      {/* Footer — always visible at bottom */}
       <div className="px-2 py-3 border-t border-[#222] shrink-0">
         <NavItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" />
       </div>
@@ -156,10 +141,12 @@ function NavItem({ href, icon, label, shortcut, visible = true }: NavItemProps) 
           : 'text-white/55 hover:bg-white/[0.06] hover:text-white'
       )}
     >
-      <span className={cn(
-        'shrink-0 transition-colors',
-        isActive ? 'text-[#9F7CEF]' : 'text-white/35 group-hover:text-white/80'
-      )}>
+      <span
+        className={cn(
+          'shrink-0 transition-colors',
+          isActive ? 'text-[#9F7CEF]' : 'text-white/35 group-hover:text-white/80'
+        )}
+      >
         {icon}
       </span>
       <span className="flex-1 truncate leading-none">{label}</span>

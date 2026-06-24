@@ -1,4 +1,13 @@
-export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'done' | 'canceled'
+﻿export type TaskStatus =
+  | 'Backlog'
+  | 'Ready'
+  | 'Todo'
+  | 'In Progress'
+  | 'Review'
+  | 'Testing'
+  | 'Blocked'
+  | 'Done'
+  | 'Cancelled'
 export type TaskPriority = 'no_priority' | 'urgent' | 'high' | 'medium' | 'low'
 
 export interface Task {
@@ -37,4 +46,3 @@ export interface Profile {
   created_at: string
   updated_at: string
 }
-

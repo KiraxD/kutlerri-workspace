@@ -2,7 +2,18 @@ import Link from 'next/link'
 import { Task } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { AlertCircle, ArrowDown, ArrowRight, ArrowUp, Circle, CircleDashed, CheckCircle2, XCircle, Clock, Eye, TestTube } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  Circle,
+  CircleDashed,
+  CheckCircle2,
+  Eye,
+  TestTube,
+  XCircle,
+} from 'lucide-react'
 
 export function TaskList({ tasks }: { tasks: Task[] | null }) {
   if (!tasks || tasks.length === 0) {
@@ -25,7 +36,6 @@ export function TaskList({ tasks }: { tasks: Task[] | null }) {
 }
 
 function TaskListItem({ task }: { task: Task }) {
-  const statusLabel = getStatusLabel(task.status)
   return (
     <Link
       href={`/task/${task.identifier}`}
@@ -35,15 +45,13 @@ function TaskListItem({ task }: { task: Task }) {
         <PriorityIcon priority={task.priority} />
         <span className="text-muted-foreground font-mono text-xs uppercase">{task.identifier}</span>
       </div>
-      
+
       <div className="flex items-center gap-2 w-36 shrink-0">
         <StatusIcon status={task.status} />
-        <span className="text-muted-foreground text-xs">{statusLabel}</span>
+        <span className="text-muted-foreground text-xs">{getStatusLabel(task.status)}</span>
       </div>
 
-      <div className="flex-1 min-w-0 font-medium truncate">
-        {task.title}
-      </div>
+      <div className="flex-1 min-w-0 font-medium truncate">{task.title}</div>
 
       <div className="flex items-center gap-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
         {task.estimate && (
@@ -61,24 +69,23 @@ function TaskListItem({ task }: { task: Task }) {
 
 function getStatusLabel(status: string): string {
   const map: Record<string, string> = {
-    // New enum values
-    'Backlog': 'Backlog',
-    'Ready': 'Ready',
-    'Todo': 'Todo',
+    Backlog: 'Backlog',
+    Ready: 'Ready',
+    Todo: 'Todo',
     'In Progress': 'In Progress',
-    'Review': 'Review',
-    'Testing': 'Testing',
-    'Blocked': 'Blocked',
-    'Done': 'Done',
-    'Cancelled': 'Cancelled',
-    // Legacy values (just in case)
-    'backlog': 'Backlog',
-    'todo': 'Todo',
-    'in_progress': 'In Progress',
-    'in_review': 'Review',
-    'done': 'Done',
-    'canceled': 'Cancelled',
+    Review: 'Review',
+    Testing: 'Testing',
+    Blocked: 'Blocked',
+    Done: 'Done',
+    Cancelled: 'Cancelled',
+    backlog: 'Backlog',
+    todo: 'Todo',
+    in_progress: 'In Progress',
+    in_review: 'Review',
+    done: 'Done',
+    canceled: 'Cancelled',
   }
+
   return map[status] || status
 }
 
@@ -93,7 +100,7 @@ function PriorityIcon({ priority }: { priority: Task['priority'] }) {
     case 'low':
       return <ArrowDown className="w-4 h-4 text-blue-500 shrink-0" />
     default:
-      return <div className="w-4 h-4 flex items-center justify-center text-muted-foreground/40 shrink-0">–</div>
+      return <div className="w-4 h-4 flex items-center justify-center text-muted-foreground/40 shrink-0">-</div>
   }
 }
 

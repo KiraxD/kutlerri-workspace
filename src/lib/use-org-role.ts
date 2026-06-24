@@ -1,6 +1,6 @@
-'use client'
+﻿'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { OrgRole } from '@/lib/permissions'
 
@@ -10,20 +10,20 @@ import type { OrgRole } from '@/lib/permissions'
  */
 export function useOrgRole(orgId: string | null) {
   const [role, setRole] = useState<OrgRole | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Boolean(orgId))
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!orgId) {
-      setRole(null)
-      setLoading(false)
       return
     }
 
     const fetchRole = async () => {
       try {
         const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
 
         if (!user) {
           setRole(null)
@@ -44,7 +44,7 @@ export function useOrgRole(orgId: string | null) {
           return
         }
 
-        setRole(orgMember?.role as OrgRole || null)
+        setRole((orgMember?.role as OrgRole) || null)
         setError(null)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
@@ -56,6 +56,10 @@ export function useOrgRole(orgId: string | null) {
 
     fetchRole()
   }, [orgId])
+
+  if (!orgId) {
+    return { role: null, loading: false, error: null }
+  }
 
   return { role, loading, error }
 }
@@ -77,7 +81,7 @@ export async function getOrgRoleServer(
       .eq('user_id', userId)
       .single()
 
-    return orgMember?.role as OrgRole || null
+    return (orgMember?.role as OrgRole) || null
   } catch {
     return null
   }

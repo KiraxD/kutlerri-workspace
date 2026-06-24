@@ -1,54 +1,68 @@
-'use server'
+﻿'use server'
 
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-export async function initializeSystemAction(email: string) {
+export async function initializeSystemAction() {
   try {
     const supabase = await createClient()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
 
-    // 1. Check if system is already initialized
+    if (userError || !user || !user.email) {
+      return { success: false, error: 'Please sign in before initializing your workspace.' }
+    }
+
+    const userName = user.user_metadata?.full_name || user.email.split('@')[0]
+
+    const { data: currentMemberships } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .limit(1)
+
+    if (currentMemberships && currentMemberships.length > 0) {
+      redirect('/home')
+    }
+
     const { data: existingMembers } = await supabase
       .from('organization_members')
-      .select('id')
+      .select('organization_id')
       .limit(1)
 
     if (existingMembers && existingMembers.length > 0) {
-      return { success: false, error: 'System already initialized' }
+      return {
+        success: false,
+        error: 'A workspace already exists. Ask an administrator to add your account to the organization.',
+      }
     }
 
-    // 2. Check if user exists in Auth
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers()
-    if (authError) {
-      return { success: false, error: 'Failed to list users' }
-    }
-
-    const user = authUsers.users.find((u) => u.email === email)
-    if (!user) {
-      return { success: false, error: `User with email ${email} not found. Please sign up first.` }
-    }
-
-    // 3. Create Organization
     const { data: org, error: orgError } = await supabase
       .from('organizations')
       .insert({
-        name: email.split('@')[0] + "'s Organization",
-        slug: email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random() * 1000),
+        name: `${userName}'s Workspace`,
+        slug:
+          user.email
+            .split('@')[0]
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '-') + '-' + Math.floor(Math.random() * 1000),
       })
       .select()
       .single()
 
     if (orgError || !org) {
-      return { success: false, error: 'Failed to create organization' }
+      return { success: false, error: orgError?.message || 'Failed to create organization' }
     }
 
-    // 4. Ensure profile exists
     await supabase.from('profiles').upsert({
       id: user.id,
       email: user.email,
-      full_name: user.user_metadata?.full_name || email.split('@')[0],
+      full_name: userName,
+      phone_number: user.user_metadata?.phone_number ?? null,
     })
 
-    // 5. Add user to organization as super_admin
     const { error: memberError } = await supabase.from('organization_members').insert({
       organization_id: org.id,
       user_id: user.id,
@@ -56,27 +70,33 @@ export async function initializeSystemAction(email: string) {
     })
 
     if (memberError) {
-      return { success: false, error: 'Failed to assign super_admin role' }
+      return { success: false, error: memberError.message }
     }
 
-    // 6. Create default team
-    const { data: team } = await supabase
+    const { data: team, error: teamError } = await supabase
       .from('teams')
       .insert({
         organization_id: org.id,
         name: 'Default Team',
-        identifier: 'DEFAULT',
+        identifier: 'KT',
       })
       .select()
       .single()
 
-    // 7. Add user to default team
+    if (teamError) {
+      return { success: false, error: teamError.message }
+    }
+
     if (team) {
-      await supabase.from('team_members').insert({
+      const { error: teamMemberError } = await supabase.from('team_members').insert({
         team_id: team.id,
         user_id: user.id,
-        team_role: 'team_lead',
+        role: 'team_lead',
       })
+
+      if (teamMemberError) {
+        return { success: false, error: teamMemberError.message }
+      }
     }
 
     return { success: true }

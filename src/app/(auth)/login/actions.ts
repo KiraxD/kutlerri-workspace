@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -18,7 +18,11 @@ export async function login(formData: FormData) {
     redirect('/login?message=Could not authenticate user')
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/')
-}
+  const { data: memberships } = await supabase
+    .from('organization_members')
+    .select('organization_id')
+    .limit(1)
 
+  revalidatePath('/', 'layout')
+  redirect(memberships && memberships.length > 0 ? '/' : '/init')
+}

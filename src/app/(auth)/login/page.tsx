@@ -6,22 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Image from 'next/image'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 
 export default async function LoginPage(props: { searchParams: Promise<{ message?: string }> }) {
   const searchParams = await props.searchParams;
-
-  // Check if system is initialized
-  const supabase = await createClient()
-  const { data: members } = await supabase
-    .from('organization_members')
-    .select('id')
-    .limit(1)
-
-  if (!members || members.length === 0) {
-    redirect('/init')
-  }
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-[#0d0d0d] px-4">

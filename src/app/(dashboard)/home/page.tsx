@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import {
   CheckCircle2, Bell, Briefcase, Target, TrendingUp,
@@ -12,14 +12,12 @@ export default async function HomePage() {
 
   if (!user) redirect('/login')
 
-  // Fetch profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Fetch recent tasks assigned to user
   const { data: recentTasks } = await supabase
     .from('tasks')
     .select('id, identifier, title, status, priority, updated_at')
@@ -27,7 +25,6 @@ export default async function HomePage() {
     .order('updated_at', { ascending: false })
     .limit(5)
 
-  // Fetch unread notifications count
   const { count: notifCount } = await supabase
     .from('notifications')
     .select('*', { count: 'exact', head: true })
@@ -35,26 +32,34 @@ export default async function HomePage() {
     .is('read_at', null)
     .is('archived_at', null)
 
-  // Fetch organization role
   const { data: orgMembers } = await supabase
     .from('organization_members')
-    .select('role, organization:organizations(name, id)')
+    .select('organization_id, role')
     .eq('user_id', user.id)
     .limit(1)
-  
-  const orgRole = orgMembers?.[0]?.role || null
-  const organization = orgMembers?.[0]?.organization
 
-  // Fetch team memberships with team roles
+  const orgRole = orgMembers?.[0]?.role || null
+  const orgId = orgMembers?.[0]?.organization_id
+
+  let organization: any = null
+  if (orgId) {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('id, name')
+      .eq('id', orgId)
+      .single()
+    organization = org
+  }
+
   const { data: teamMembers } = await supabase
     .from('team_members')
-    .select('team_role, team:teams(id, name, identifier)')
+    .select('role, team:teams(id, name, identifier)')
     .eq('user_id', user.id)
-  const teams = teamMembers?.map((tm: any) => tm.team) ?? []
-  const teamRoles = teamMembers?.map((tm: any) => ({ team: tm.team.name, role: tm.team_role })) ?? []
 
-  // Fetch recent projects
-  const teamIds = teams.map((t: any) => t.id)
+  const teams = teamMembers?.map((member: any) => member.team).filter(Boolean) ?? []
+  const teamRoles = teamMembers?.map((member: any) => ({ team: member.team.name, role: member.role })) ?? []
+
+  const teamIds = teams.map((team: any) => team.id)
   let recentProjects: any[] = []
   if (teamIds.length > 0) {
     const { data } = await supabase
@@ -66,20 +71,31 @@ export default async function HomePage() {
     recentProjects = data ?? []
   }
 
+  let recentActivity: any[] = []
+  if (organization?.id) {
+    const { data } = await supabase
+      .from('activity_events')
+      .select('id, action_type, created_at, team:teams(name), task:tasks(identifier, title)')
+      .eq('organization_id', organization.id)
+      .order('created_at', { ascending: false })
+      .limit(5)
+    recentActivity = data ?? []
+  }
+
   const name = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there'
-  const hour = new Date().getUTCHours() + 5 // IST offset
+  const hour = new Date().getUTCHours() + 5
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   const statusColors: Record<string, string> = {
-    'Todo': 'bg-gray-100 text-gray-600',
+    Todo: 'bg-gray-100 text-gray-600',
     'In Progress': 'bg-yellow-100 text-yellow-700',
-    'Review': 'bg-blue-100 text-blue-700',
-    'Done': 'bg-green-100 text-green-700',
-    'Backlog': 'bg-gray-100 text-gray-500',
-    'Blocked': 'bg-red-100 text-red-600',
-    'Testing': 'bg-purple-100 text-purple-700',
-    'Cancelled': 'bg-gray-100 text-gray-400',
-    'Ready': 'bg-sky-100 text-sky-700',
+    Review: 'bg-blue-100 text-blue-700',
+    Done: 'bg-green-100 text-green-700',
+    Backlog: 'bg-gray-100 text-gray-500',
+    Blocked: 'bg-red-100 text-red-600',
+    Testing: 'bg-purple-100 text-purple-700',
+    Cancelled: 'bg-gray-100 text-gray-400',
+    Ready: 'bg-sky-100 text-sky-700',
   }
 
   const priorityDot: Record<string, string> = {
@@ -92,20 +108,19 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col bg-background">
-      {/* Hero Header */}
       <div className="relative px-8 pt-10 pb-8 border-b border-border bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
         <p className="text-sm text-muted-foreground mb-1">{greeting},</p>
         <h1 className="text-3xl font-bold font-heading tracking-tight text-foreground capitalize">
-          {name} 👋
+          {name}
         </h1>
-        <p className="text-muted-foreground mt-2 text-sm">Here's what's happening in your workspace today.</p>
+        <p className="text-muted-foreground mt-2 text-sm">
+          {organization?.name ? `Here's what's happening in ${organization.name}.` : "Here's what's happening in your workspace today."}
+        </p>
 
-        {/* Roles Display */}
         <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-lg backdrop-blur-sm">
           <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-3">Your Roles & Access</p>
           <div className="flex flex-wrap gap-3">
-            {/* Organization Role */}
             {orgRole && (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-full">
                 <span className="text-xs font-semibold text-purple-300">Organization</span>
@@ -114,29 +129,24 @@ export default async function HomePage() {
                 </span>
               </div>
             )}
-            
-            {/* Team Roles */}
-            {teamRoles.length > 0 && (
-              teamRoles.map((tr, idx) => (
-                <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-full">
-                  <span className="text-xs font-semibold text-blue-300">{tr.team}</span>
-                  <span className="px-2 py-0.5 bg-blue-500/40 rounded-full text-xs font-bold text-blue-100 capitalize">
-                    {tr.role.replace(/_/g, ' ')}
-                  </span>
-                </div>
-              ))
-            )}
 
-            {/* No Role Message */}
+            {teamRoles.length > 0 && teamRoles.map((teamRole, index) => (
+              <div key={index} className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-full">
+                <span className="text-xs font-semibold text-blue-300">{teamRole.team}</span>
+                <span className="px-2 py-0.5 bg-blue-500/40 rounded-full text-xs font-bold text-blue-100 capitalize">
+                  {teamRole.role.replace(/_/g, ' ')}
+                </span>
+              </div>
+            ))}
+
             {!orgRole && teamRoles.length === 0 && (
               <div className="text-xs text-muted-foreground italic">
-                Awaiting role assignment from administrator
+                Awaiting role assignment from an administrator
               </div>
             )}
           </div>
         </div>
 
-        {/* Quick Stats */}
         <div className="flex gap-4 mt-6 flex-wrap">
           <StatChip icon={<CheckCircle2 className="w-3.5 h-3.5" />} label="My Tasks" value={recentTasks?.length ?? 0} href="/my-tasks" color="text-green-600" />
           <StatChip icon={<Bell className="w-3.5 h-3.5" />} label="Unread" value={notifCount ?? 0} href="/inbox" color="text-primary" />
@@ -146,14 +156,8 @@ export default async function HomePage() {
       </div>
 
       <div className="flex-1 p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* My Tasks */}
         <div className="lg:col-span-2 space-y-6">
-          <SectionCard
-            title="My Tasks"
-            icon={<CheckCircle2 className="w-4 h-4 text-primary" />}
-            href="/my-tasks"
-            linkLabel="View all"
-          >
+          <SectionCard title="My Tasks" icon={<CheckCircle2 className="w-4 h-4 text-primary" />} href="/my-tasks" linkLabel="View all">
             {!recentTasks || recentTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <CheckCircle2 className="w-8 h-8 mb-2 opacity-20" />
@@ -179,13 +183,7 @@ export default async function HomePage() {
             )}
           </SectionCard>
 
-          {/* Recent Projects */}
-          <SectionCard
-            title="Recent Projects"
-            icon={<Briefcase className="w-4 h-4 text-blue-500" />}
-            href="/projects"
-            linkLabel="View all"
-          >
+          <SectionCard title="Recent Projects" icon={<Briefcase className="w-4 h-4 text-blue-500" />} href="/projects" linkLabel="View all">
             {recentProjects.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                 <Briefcase className="w-8 h-8 mb-2 opacity-20" />
@@ -193,17 +191,17 @@ export default async function HomePage() {
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-3">
-                {recentProjects.map((p: any) => (
+                {recentProjects.map((project: any) => (
                   <Link
-                    key={p.id}
+                    key={project.id}
                     href="/projects"
                     className="flex items-center justify-between p-3 rounded-lg border border-border/60 hover:border-primary/30 hover:bg-muted/30 transition-all group"
                   >
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate group-hover:text-primary">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">{p.team?.name}</p>
+                      <p className="text-sm font-medium truncate group-hover:text-primary">{project.name}</p>
+                      <p className="text-xs text-muted-foreground">{project.team?.name}</p>
                     </div>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize shrink-0 ml-2">{p.status}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize shrink-0 ml-2">{project.status}</span>
                   </Link>
                 ))}
               </div>
@@ -211,9 +209,7 @@ export default async function HomePage() {
           </SectionCard>
         </div>
 
-        {/* Right Column */}
         <div className="space-y-6">
-          {/* Quick Actions */}
           <div className="rounded-xl border border-border bg-card p-5">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <Zap className="w-4 h-4 text-yellow-500" />
@@ -229,7 +225,6 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Teams */}
           <div className="rounded-xl border border-border bg-card p-5">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <Users className="w-4 h-4 text-purple-500" />
@@ -238,11 +233,8 @@ export default async function HomePage() {
             {teams.length === 0 ? (
               <div className="text-center py-4">
                 <p className="text-xs text-muted-foreground mb-3">No teams yet.</p>
-                <Link
-                  href="/teams"
-                  className="text-xs text-primary hover:underline font-medium"
-                >
-                  Create your first team →
+                <Link href="/teams" className="text-xs text-primary hover:underline font-medium">
+                  Create your first team
                 </Link>
               </div>
             ) : (
@@ -265,15 +257,29 @@ export default async function HomePage() {
             )}
           </div>
 
-          {/* Recent Activity */}
           <div className="rounded-xl border border-border bg-card p-5">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" />
               Recent Activity
             </h3>
-            <div className="text-center py-4">
-              <p className="text-xs text-muted-foreground">Activity feed coming soon.</p>
-            </div>
+            {recentActivity.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-xs text-muted-foreground">No activity yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentActivity.map((activity: any) => (
+                  <div key={activity.id} className="text-sm">
+                    <p className="font-medium text-foreground">{formatActionType(activity.action_type)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {activity.task?.identifier ? `${activity.task.identifier} · ` : ''}
+                      {activity.team?.name ? `${activity.team.name} · ` : ''}
+                      {new Date(activity.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -281,12 +287,13 @@ export default async function HomePage() {
   )
 }
 
+function formatActionType(actionType: string) {
+  return actionType.replace(/_/g, ' ').replace(/\b\w/g, (match) => match.toUpperCase())
+}
+
 function StatChip({ icon, label, value, href, color }: { icon: React.ReactNode; label: string; value: number; href: string; color: string }) {
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
-    >
+    <Link href={href} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card hover:border-primary/30 hover:shadow-sm transition-all">
       <span className={color}>{icon}</span>
       <span className="text-xs text-muted-foreground">{label}</span>
       <span className="text-sm font-bold text-foreground">{value}</span>

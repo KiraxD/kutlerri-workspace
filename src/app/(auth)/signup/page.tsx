@@ -1,13 +1,12 @@
 import { signup } from './actions'
 import { SubmitButton } from '@/components/submit-button'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Image from 'next/image'
 import Link from 'next/link'
 
 export default async function SignupPage(props: { searchParams: Promise<{ message?: string }> }) {
-  const searchParams = await props.searchParams;
+  const searchParams = await props.searchParams
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-[#0d0d0d] px-4 py-12">
@@ -30,20 +29,55 @@ export default async function SignupPage(props: { searchParams: Promise<{ messag
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="full_name" className="text-white">Full Name</Label>
-            <Input id="full_name" name="full_name" type="text" placeholder="John Doe" required className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40" />
+            <Label htmlFor="full_name" className="text-white">
+              Full Name
+            </Label>
+            <Input
+              id="full_name"
+              name="full_name"
+              type="text"
+              placeholder="John Doe"
+              required
+              className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone_number" className="text-white">Phone Number</Label>
-            <Input id="phone_number" name="phone_number" type="tel" placeholder="+1 (555) 000-0000" required className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40" />
+            <Label htmlFor="phone_number" className="text-white">
+              Phone Number
+            </Label>
+            <Input
+              id="phone_number"
+              name="phone_number"
+              type="tel"
+              placeholder="+1 (555) 000-0000"
+              required
+              className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-white">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="m@example.com" required className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40" />
+            <Label htmlFor="email" className="text-white">
+              Email
+            </Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+              className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white">Password</Label>
-            <Input id="password" name="password" type="password" required className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40" />
+            <Label htmlFor="password" className="text-white">
+              Password
+            </Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              required
+              className="bg-[#1a1a1a] border-[#333] text-white placeholder:text-white/40"
+            />
           </div>
           <div className="flex flex-col gap-2 pt-2">
             <SubmitButton className="w-full" pendingText="Creating account...">

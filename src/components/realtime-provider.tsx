@@ -12,30 +12,23 @@ export function RealtimeProvider({ userId }: { userId?: string }) {
 
     const supabase = createClient()
 
-    // Listen to notifications
     const notificationsChannel = supabase
       .channel('realtime-notifications')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
         (payload) => {
-          // Trigger a revalidation by refreshing the router
           router.refresh()
           console.log('New notification:', payload)
         }
       )
       .subscribe()
 
-    // Listen to activity events (optional, maybe global or specific to team)
     const activityChannel = supabase
       .channel('realtime-activity')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'activity_events' },
-        (payload) => {
-          router.refresh()
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activity_events' }, () => {
+        router.refresh()
+      })
       .subscribe()
 
     return () => {

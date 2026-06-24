@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Briefcase, Plus, ArrowRight, GitBranch, Calendar, Users } from 'lucide-react'
+import { Briefcase, Plus, ArrowRight, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -23,15 +23,13 @@ const STATUS_DOT: Record<string, string> = {
 
 export default async function ProjectsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: teamMembers } = await supabase
-    .from('team_members')
-    .select('team_id')
-    .eq('user_id', user.id)
-
-  const teamIds = teamMembers?.map(tm => tm.team_id) ?? []
+  const { data: teamMembers } = await supabase.from('team_members').select('team_id').eq('user_id', user.id)
+  const teamIds = teamMembers?.map((teamMember) => teamMember.team_id) ?? []
 
   let projects: any[] = []
   if (teamIds.length > 0) {
@@ -43,19 +41,17 @@ export default async function ProjectsPage() {
     projects = data ?? []
   }
 
-  // Group by status
   const grouped: Record<string, any[]> = {}
   const order = ['in_progress', 'planned', 'backlog', 'paused', 'completed', 'cancelled']
-  projects.forEach(p => {
-    const s = p.status ?? 'backlog'
-    if (!grouped[s]) grouped[s] = []
-    grouped[s].push(p)
+  projects.forEach((project) => {
+    const status = project.status ?? 'backlog'
+    if (!grouped[status]) grouped[status] = []
+    grouped[status].push(project)
   })
-  const sortedGroups = order.filter(s => grouped[s]?.length > 0)
+  const sortedGroups = order.filter((status) => grouped[status]?.length > 0)
 
   return (
     <div className="flex flex-col h-full bg-background overflow-y-auto">
-      {/* Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-gradient-to-r from-blue-50 to-background">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -71,12 +67,17 @@ export default async function ProjectsPage() {
         </Button>
       </div>
 
-      {/* Stats */}
       {projects.length > 0 && (
         <div className="flex gap-6 px-8 py-3 border-b border-border/60 bg-muted/20 text-sm">
-          <span className="text-muted-foreground">Total: <strong className="text-foreground">{projects.length}</strong></span>
-          <span className="text-muted-foreground">Active: <strong className="text-yellow-600">{grouped['in_progress']?.length ?? 0}</strong></span>
-          <span className="text-muted-foreground">Completed: <strong className="text-green-600">{grouped['completed']?.length ?? 0}</strong></span>
+          <span className="text-muted-foreground">
+            Total: <strong className="text-foreground">{projects.length}</strong>
+          </span>
+          <span className="text-muted-foreground">
+            Active: <strong className="text-yellow-600">{grouped.in_progress?.length ?? 0}</strong>
+          </span>
+          <span className="text-muted-foreground">
+            Completed: <strong className="text-green-600">{grouped.completed?.length ?? 0}</strong>
+          </span>
         </div>
       )}
 
@@ -91,14 +92,18 @@ export default async function ProjectsPage() {
               Projects organize your team's work. Create a team first, then create your first project.
             </p>
             {teamIds.length === 0 ? (
-              <Link href="/teams"><Button>Create a Team First</Button></Link>
+              <Link href="/teams">
+                <Button>Create a Team First</Button>
+              </Link>
             ) : (
-              <Button className="gap-2"><Plus className="w-4 h-4" /> New Project</Button>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" /> New Project
+              </Button>
             )}
           </div>
         ) : (
           <div className="space-y-8">
-            {sortedGroups.map(status => (
+            {sortedGroups.map((status) => (
               <div key={status}>
                 <div className="flex items-center gap-2 mb-3">
                   <div className={`w-2 h-2 rounded-full ${STATUS_DOT[status]}`} />
@@ -107,7 +112,10 @@ export default async function ProjectsPage() {
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {grouped[status].map((project: any) => (
-                    <div key={project.id} className="border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group bg-card">
+                    <div
+                      key={project.id}
+                      className="border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group bg-card"
+                    >
                       <div className="flex justify-between items-start mb-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                           {project.team?.identifier?.slice(0, 2) || 'PR'}
@@ -121,7 +129,10 @@ export default async function ProjectsPage() {
                         {project.description || 'No description provided.'}
                       </p>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1"><Users className="w-3 h-3" />{project.team?.name}</span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {project.team?.name}
+                        </span>
                         <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </div>

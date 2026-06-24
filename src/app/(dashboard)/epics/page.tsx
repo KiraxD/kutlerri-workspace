@@ -4,40 +4,38 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
 const STATUS_STYLES: Record<string, string> = {
-  'Backlog': 'bg-gray-100 text-gray-500',
-  'Ready': 'bg-sky-100 text-sky-700',
-  'Todo': 'bg-gray-100 text-gray-600',
+  Backlog: 'bg-gray-100 text-gray-500',
+  Ready: 'bg-sky-100 text-sky-700',
+  Todo: 'bg-gray-100 text-gray-600',
   'In Progress': 'bg-yellow-100 text-yellow-700',
-  'Review': 'bg-blue-100 text-blue-700',
-  'Testing': 'bg-purple-100 text-purple-700',
-  'Blocked': 'bg-red-100 text-red-600',
-  'Done': 'bg-green-100 text-green-700',
-  'Cancelled': 'bg-gray-100 text-gray-400',
+  Review: 'bg-blue-100 text-blue-700',
+  Testing: 'bg-purple-100 text-purple-700',
+  Blocked: 'bg-red-100 text-red-600',
+  Done: 'bg-green-100 text-green-700',
+  Cancelled: 'bg-gray-100 text-gray-400',
 }
 
 const STATUS_DOT: Record<string, string> = {
-  'Backlog': 'bg-gray-300',
-  'Ready': 'bg-sky-400',
-  'Todo': 'bg-gray-400',
+  Backlog: 'bg-gray-300',
+  Ready: 'bg-sky-400',
+  Todo: 'bg-gray-400',
   'In Progress': 'bg-yellow-400',
-  'Review': 'bg-blue-400',
-  'Testing': 'bg-purple-400',
-  'Blocked': 'bg-red-500',
-  'Done': 'bg-green-500',
-  'Cancelled': 'bg-gray-200',
+  Review: 'bg-blue-400',
+  Testing: 'bg-purple-400',
+  Blocked: 'bg-red-500',
+  Done: 'bg-green-500',
+  Cancelled: 'bg-gray-200',
 }
 
 export default async function EpicsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Fetch orgs
-  const { data: orgMembers } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .eq('user_id', user.id)
-  const orgIds = orgMembers?.map((o: any) => o.organization_id) ?? []
+  const { data: orgMembers } = await supabase.from('organization_members').select('organization_id').eq('user_id', user.id)
+  const orgIds = orgMembers?.map((organizationMember: any) => organizationMember.organization_id) ?? []
 
   let epics: any[] = []
   if (orgIds.length > 0) {
@@ -49,32 +47,26 @@ export default async function EpicsPage() {
     epics = data ?? []
   }
 
-  // Count tasks per epic (from tasks.epic_id)
-  let taskCounts: Record<string, number> = {}
+  const taskCounts: Record<string, number> = {}
   if (epics.length > 0) {
-    const epicIds = epics.map((e: any) => e.id)
-    const { data: tasks } = await supabase
-      .from('tasks')
-      .select('epic_id')
-      .in('epic_id', epicIds)
-    tasks?.forEach((t: any) => {
-      if (t.epic_id) taskCounts[t.epic_id] = (taskCounts[t.epic_id] || 0) + 1
+    const epicIds = epics.map((epic: any) => epic.id)
+    const { data: tasks } = await supabase.from('tasks').select('epic_id').in('epic_id', epicIds)
+    tasks?.forEach((task: any) => {
+      if (task.epic_id) taskCounts[task.epic_id] = (taskCounts[task.epic_id] || 0) + 1
     })
   }
 
-  // Group by status
   const grouped: Record<string, any[]> = {}
   const order = ['In Progress', 'Review', 'Todo', 'Ready', 'Backlog', 'Blocked', 'Testing', 'Done', 'Cancelled']
-  epics.forEach((e) => {
-    const s = e.status ?? 'Backlog'
-    if (!grouped[s]) grouped[s] = []
-    grouped[s].push(e)
+  epics.forEach((epic) => {
+    const status = epic.status ?? 'Backlog'
+    if (!grouped[status]) grouped[status] = []
+    grouped[status].push(epic)
   })
-  const sortedGroups = order.filter((s) => grouped[s]?.length > 0)
+  const sortedGroups = order.filter((status) => grouped[status]?.length > 0)
 
   return (
     <div className="flex flex-col bg-background">
-      {/* Header */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-border bg-gradient-to-r from-blue-50 to-background">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -90,13 +82,20 @@ export default async function EpicsPage() {
         </Button>
       </div>
 
-      {/* Stats Bar */}
       {epics.length > 0 && (
         <div className="flex gap-6 px-8 py-3 border-b border-border/60 bg-muted/20 text-sm">
-          <span className="text-muted-foreground">Total: <strong className="text-foreground">{epics.length}</strong></span>
-          <span className="text-muted-foreground">In Progress: <strong className="text-yellow-600">{grouped['In Progress']?.length ?? 0}</strong></span>
-          <span className="text-muted-foreground">Done: <strong className="text-green-600">{grouped['Done']?.length ?? 0}</strong></span>
-          <span className="text-muted-foreground">Total Tasks: <strong className="text-foreground">{Object.values(taskCounts).reduce((a, b) => a + b, 0)}</strong></span>
+          <span className="text-muted-foreground">
+            Total: <strong className="text-foreground">{epics.length}</strong>
+          </span>
+          <span className="text-muted-foreground">
+            In Progress: <strong className="text-yellow-600">{grouped['In Progress']?.length ?? 0}</strong>
+          </span>
+          <span className="text-muted-foreground">
+            Done: <strong className="text-green-600">{grouped.Done?.length ?? 0}</strong>
+          </span>
+          <span className="text-muted-foreground">
+            Total Tasks: <strong className="text-foreground">{Object.values(taskCounts).reduce((left, right) => left + right, 0)}</strong>
+          </span>
         </div>
       )}
 
@@ -115,17 +114,21 @@ export default async function EpicsPage() {
                 { icon: <GitBranch className="w-5 h-5 text-blue-500" />, label: 'Links to Tasks' },
                 { icon: <Compass className="w-5 h-5 text-violet-500" />, label: 'Under Initiatives' },
                 { icon: <Target className="w-5 h-5 text-green-500" />, label: 'Track Progress' },
-              ].map((f) => (
-                <div key={f.label} className="p-4 rounded-xl border border-border bg-muted/20">
-                  <div className="flex justify-center mb-2">{f.icon}</div>
-                  <p className="text-xs text-muted-foreground font-medium">{f.label}</p>
+              ].map((feature) => (
+                <div key={feature.label} className="p-4 rounded-xl border border-border bg-muted/20">
+                  <div className="flex justify-center mb-2">{feature.icon}</div>
+                  <p className="text-xs text-muted-foreground font-medium">{feature.label}</p>
                 </div>
               ))}
             </div>
             {orgIds.length === 0 ? (
-              <Link href="/teams" className="text-sm text-primary hover:underline">Create a team first →</Link>
+              <Link href="/teams" className="text-sm text-primary hover:underline">
+                Create a team first
+              </Link>
             ) : (
-              <Button className="gap-2"><Plus className="w-4 h-4" /> Create Epic</Button>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" /> Create Epic
+              </Button>
             )}
           </div>
         ) : (
@@ -164,9 +167,7 @@ function EpicRow({ epic, taskCount }: { epic: any; taskCount: number }) {
               {epic.initiative.name}
             </span>
           )}
-          {epic.description && (
-            <span className="text-xs text-muted-foreground truncate">{epic.description}</span>
-          )}
+          {epic.description && <span className="text-xs text-muted-foreground truncate">{epic.description}</span>}
         </div>
       </div>
       <div className="flex items-center gap-3 shrink-0">

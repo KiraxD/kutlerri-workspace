@@ -1,4 +1,4 @@
-'use server'
+﻿'use server'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -14,8 +14,8 @@ export async function signup(formData: FormData) {
       data: {
         full_name: formData.get('full_name') as string,
         phone_number: formData.get('phone_number') as string,
-      }
-    }
+      },
+    },
   }
 
   const { error } = await supabase.auth.signUp(data)
@@ -25,5 +25,5 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/init')
 }

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Server-side permission checking utilities
  * Use these in all server actions to verify user permissions
  */
@@ -15,13 +15,15 @@ export async function verifyPermission(
   orgId?: string
 ): Promise<{ allowed: true; userId: string; orgId: string; role: OrgRole }> {
   const supabase = await createClient()
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
 
   if (userError || !user) {
     throw new Error('Not authenticated')
   }
 
-  // If no orgId provided, get from first organization user is member of
   let targetOrgId = orgId
   if (!targetOrgId) {
     const { data: orgMembers } = await supabase
@@ -41,7 +43,6 @@ export async function verifyPermission(
     throw new Error('Organization not found')
   }
 
-  // Get user's role
   const { data: orgMember } = await supabase
     .from('organization_members')
     .select('role')
@@ -60,15 +61,5 @@ export async function verifyPermission(
     userId: user.id,
     orgId: targetOrgId,
     role: role as OrgRole,
-  }
-}
-
-/**
- * Wrap a server action with permission checking
- */
-export function withPermissionCheck(permission: string) {
-  return async function (action: Function, ...args: any[]) {
-    await verifyPermission(permission)
-    return action(...args)
   }
 }
