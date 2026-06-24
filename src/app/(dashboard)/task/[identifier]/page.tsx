@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { TaskAssignmentDisplay } from '@/components/task-assignment-display'
+import { HierarchyBreadcrumb, HierarchyLevel } from '@/components/hierarchy-breadcrumb'
 import {
   AlertCircle,
   ArrowDown,
@@ -51,7 +52,18 @@ export default async function TaskDetailPage({
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="flex items-center gap-2 px-6 py-4 border-b border-border text-sm text-muted-foreground">
+      <HierarchyBreadcrumb
+        items={[
+          { label: task.team?.organization_id ? 'Organization' : 'Home', href: '/home' },
+          { label: task.team?.name || 'Team', href: `/teams` },
+          { label: 'Tasks', href: '/my-tasks' },
+          { label: task.identifier, current: true },
+        ]}
+      />
+
+      <div className="flex items-center gap-2 px-6 py-3 border-b border-border text-sm text-muted-foreground bg-gradient-to-r from-muted/50 to-background">
+        <HierarchyLevel level="task" />
+        <div className="flex-1" />
         <span className="font-medium hover:text-foreground cursor-pointer">{task.team?.identifier}</span>
         <ChevronRight className="w-4 h-4" />
         <span className="font-mono uppercase">{task.identifier}</span>
@@ -81,6 +93,22 @@ export default async function TaskDetailPage({
         </div>
 
         <aside className="w-[300px] border-l border-border bg-muted/10 flex flex-col p-4 gap-6 overflow-y-auto">
+          <div className="space-y-4 p-3 bg-gradient-to-br from-blue-50/30 to-background border border-blue-200/30 rounded-lg">
+            <h3 className="text-xs font-semibold uppercase text-blue-700 tracking-wider">👤 Assign Task</h3>
+
+            <TaskAssignmentDisplay
+              taskId={task.id}
+              teamId={task.team_id}
+              currentAssigneeId={task.assignee_id}
+              currentAssigneeName={task.assignee?.full_name}
+              currentAssigneeEmail={task.assignee?.email}
+            />
+
+            <p className="text-xs text-muted-foreground italic">
+              Super Admin/Admin can assign to anyone. Managers can assign to team members only.
+            </p>
+          </div>
+
           <div className="space-y-4">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Properties</h3>
 
@@ -92,14 +120,6 @@ export default async function TaskDetailPage({
                   <span>{getStatusLabel(task.status)}</span>
                 </div>
               </div>
-
-              <TaskAssignmentDisplay
-                taskId={task.id}
-                teamId={task.team_id}
-                currentAssigneeId={task.assignee_id}
-                currentAssigneeName={task.assignee?.full_name}
-                currentAssigneeEmail={task.assignee?.email}
-              />
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground w-24">Priority</span>
