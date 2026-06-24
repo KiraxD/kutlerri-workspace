@@ -48,35 +48,9 @@ export async function initializeSystemAction() {
     let org
 
     if (orgs && orgs.length > 0) {
-      // Organization already exists - add user to it
+      // Organization already exists - new user just gets profile, no role assigned
+      // Roles can only be assigned by super_admin from the employees dashboard
       org = orgs[0]
-      
-      // Add user to existing organization as 'employee'
-      const { error: memberError } = await adminSupabase.from('organization_members').insert({
-        organization_id: org.id,
-        user_id: user.id,
-        role: 'employee',
-      })
-
-      if (memberError) {
-        return { success: false, error: memberError.message }
-      }
-
-      // Add user to default team
-      const { data: defaultTeam } = await adminSupabase
-        .from('teams')
-        .select('id')
-        .eq('organization_id', org.id)
-        .limit(1)
-        .single()
-
-      if (defaultTeam) {
-        await adminSupabase.from('team_members').insert({
-          team_id: defaultTeam.id,
-          user_id: user.id,
-          role: 'member',
-        })
-      }
     } else {
       // No organization exists - create one (first user)
       const { data: newOrg, error: orgError } = await adminSupabase
