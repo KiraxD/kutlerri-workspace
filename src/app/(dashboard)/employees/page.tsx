@@ -15,6 +15,7 @@ interface Employee {
   email: string
   full_name: string | null
   role: OrgRole
+  isAssigned?: boolean
 }
 
 export default function EmployeesPage() {
@@ -375,7 +376,11 @@ export default function EmployeesPage() {
                           <p className="text-muted-foreground text-sm">{employee.email}</p>
                         </td>
                         <td className="py-4 px-6">
-                          <RoleBadge role={employee.role} />
+                          {employee.isAssigned ? (
+                            <RoleBadge role={employee.role} />
+                          ) : (
+                            <span className="inline-block px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">Not assigned</span>
+                          )}
                         </td>
                         <td className="py-4 px-6">
                           {isSuper ? (

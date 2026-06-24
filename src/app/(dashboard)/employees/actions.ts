@@ -87,47 +87,46 @@ export async function getEmployeesAction() {
       return { success: false, error: 'Role not found', employees: [] }
     }
 
-    const { data: members, error: membersError } = await supabase
-      .from('organization_members')
-      .select('user_id, role')
-      .eq('organization_id', orgId)
-      .order('created_at', { ascending: true })
-
-    if (membersError) {
-      console.error('Error fetching members:', membersError)
-      return { success: false, error: `Failed to fetch members: ${membersError.message}`, employees: [] }
-    }
-
-    if (!members || members.length === 0) {
-      return { success: true, employees: [] }
-    }
-
-    const userIds = members.map((member) => member.user_id)
-    const { data: profiles, error: profilesError } = await supabase
+    // Fetch ALL profiles in the system
+    const { data: allProfiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, email, full_name')
-      .in('id', userIds)
+      .order('email', { ascending: true })
 
     if (profilesError) {
       console.error('Error fetching profiles:', profilesError)
       return { success: false, error: `Failed to fetch profiles: ${profilesError.message}`, employees: [] }
     }
 
-    const profileMap = new Map(profiles?.map((profile) => [profile.id, profile]) || [])
+    if (!allProfiles || allProfiles.length === 0) {
+      return { success: true, employees: [] }
+    }
 
-    let employees = members
-      .map((member) => {
-        const profile = profileMap.get(member.user_id)
-        return {
-          id: member.user_id,
-          email: profile?.email || '',
-          full_name: profile?.full_name || null,
-          role: member.role as OrgRole,
-        }
-      })
+    // Fetch organization members to see who has a role assigned
+    const { data: members, error: membersError } = await supabase
+      .from('organization_members')
+      .select('user_id, role')
+      .eq('organization_id', orgId)
+
+    if (membersError) {
+      console.error('Error fetching members:', membersError)
+      return { success: false, error: `Failed to fetch members: ${membersError.message}`, employees: [] }
+    }
+
+    const memberMap = new Map(members?.map((member) => [member.user_id, member.role]) || [])
+
+    // Build employee list with all profiles, showing role if member, "Not assigned" if not
+    let employees = allProfiles
+      .map((profile) => ({
+        id: profile.id,
+        email: profile.email || '',
+        full_name: profile.full_name || null,
+        role: (memberMap.get(profile.id) as OrgRole) || ('viewer' as OrgRole), // Default to viewer if not assigned
+        isAssigned: memberMap.has(profile.id),
+      }))
       .filter((employee) => employee.email)
-      .sort((left, right) => left.email.localeCompare(right.email))
 
+    // Managers can only see employees below them
     if (userRole === 'manager') {
       employees = employees.filter((employee) => ROLE_HIERARCHY[employee.role] < ROLE_HIERARCHY.manager)
     }
