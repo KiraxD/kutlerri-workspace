@@ -141,7 +141,7 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
               )}
               {isNavItemVisible(role, 'my-tasks') && (
                 <NavItem
-                  href="/tasks"
+                  href="/my-tasks"
                   icon={<CheckCircle2 className="w-4 h-4 text-indigo-400" />}
                   label="Tasks"
                   depth={3}
