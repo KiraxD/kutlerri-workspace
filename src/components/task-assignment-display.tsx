@@ -24,27 +24,31 @@ export function TaskAssignmentDisplay({
   const [assigneeEmail, setAssigneeEmail] = useState(currentAssigneeEmail)
 
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-muted-foreground w-24">Assignee</span>
-      <div className="flex items-center gap-2 flex-1 justify-between">
-        <div className="flex items-center gap-2 flex-1">
-          <Avatar className="h-5 w-5">
+    <div className="flex items-center justify-between gap-2 min-w-0">
+      <span className="text-muted-foreground w-20 shrink-0 text-xs">Assignee</span>
+      <div className="flex items-center gap-1.5 flex-1 justify-between min-w-0">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <Avatar className="h-5 w-5 shrink-0">
             <AvatarFallback className="text-[10px]">
               {assigneeEmail ? assigneeEmail[0].toUpperCase() : 'U'}
             </AvatarFallback>
           </Avatar>
-          <span>{assigneeName || assigneeEmail || 'Unassigned'}</span>
+          <span className="truncate text-xs font-medium text-foreground" title={assigneeName || assigneeEmail || 'Unassigned'}>
+            {assigneeName || assigneeEmail || 'Unassigned'}
+          </span>
         </div>
-        <TaskAssignmentButton
-          taskId={taskId}
-          teamId={teamId}
-          currentAssigneeId={assigneeId}
-          currentAssigneeName={assigneeName}
-          onAssignmentChange={() => {
-            // Re-fetch would be ideal, but for now we'll just update state
-            // In a real app, this would trigger a data refresh
-          }}
-        />
+        <div className="shrink-0">
+          <TaskAssignmentButton
+            taskId={taskId}
+            teamId={teamId}
+            currentAssigneeId={assigneeId}
+            currentAssigneeName={assigneeName}
+            onAssignmentChange={() => {
+              // Re-fetch would be ideal, but for now we'll just update state
+              // In a real app, this would trigger a data refresh
+            }}
+          />
+        </div>
       </div>
     </div>
   )
