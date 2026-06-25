@@ -18,7 +18,7 @@ export async function createProjectAction({
   status?: string
   targetDate?: string
 }) {
-  const { orgId, userId } = await verifyPermission('createProject')
+  const { orgId, userId, role } = await verifyPermission('createProject')
   const supabase = await createClient()
 
   // Verify the team belongs to the user's organization
@@ -32,16 +32,19 @@ export async function createProjectAction({
     return { success: false, error: 'Team not found or unauthorized' }
   }
 
-  // Verify user is actually a team member
-  const { data: isMember } = await supabase
-    .from('team_members')
-    .select('id')
-    .eq('team_id', teamId)
-    .eq('user_id', userId)
-    .single()
+  // Verify user is actually a team member (or is an admin/super_admin)
+  const isAdmin = role === 'super_admin' || role === 'admin'
+  if (!isAdmin) {
+    const { data: isMember } = await supabase
+      .from('team_members')
+      .select('id')
+      .eq('team_id', teamId)
+      .eq('user_id', userId)
+      .single()
 
-  if (!isMember) {
-    return { success: false, error: 'You must be a team member to create projects' }
+    if (!isMember) {
+      return { success: false, error: 'You must be a team member to create projects' }
+    }
   }
 
   // Use admin client to insert project (permission already verified above)
