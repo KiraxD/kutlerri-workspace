@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { GitBranch, AlertCircle, ArrowUp, ArrowRight, ArrowDown } from 'lucide-react'
 import Link from 'next/link'
-import { SubTasksListClient } from './SubTasksListClient'
+import { SubTasksListClient } from '@/app/(dashboard)/sub-tasks/SubTasksListClient'
 
 export default async function SubTasksPage() {
   const supabase = await createClient()
