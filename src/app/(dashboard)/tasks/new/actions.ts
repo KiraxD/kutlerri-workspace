@@ -44,6 +44,7 @@ export async function createTask(formData: FormData) {
       priority,
       creator_id: userId,
       assignee_id,
+      assignee_ids: assignee_id ? [assignee_id] : [],
       project_id: project_id || null,
       acceptance_status: assignee_id && assignee_id !== userId ? 'pending' : 'accepted',
     })
@@ -78,9 +79,11 @@ export async function createTask(formData: FormData) {
 export async function assignTaskAction({
   taskId,
   assigneeId,
+  assigneeIds,
 }: {
   taskId: string
-  assigneeId: string
+  assigneeId?: string | null
+  assigneeIds?: string[]
 }) {
   try {
     const { userId, orgId } = await verifyPermission('assignTask')
@@ -98,32 +101,42 @@ export async function assignTaskAction({
       return { success: false, error: 'Task not found' }
     }
 
-    // Verify hierarchical assignment permissions
-    const { canAssignTask } = await import('@/lib/task-assignment-helpers')
-    const { allowed, reason } = await canAssignTask(userId, orgId, task.team_id, assigneeId)
+    const finalIds = assigneeIds || (assigneeId ? [assigneeId] : [])
+    const primaryId = assigneeId !== undefined ? assigneeId : (finalIds.length > 0 ? finalIds[0] : null)
 
-    if (!allowed) {
-      return { success: false, error: reason || 'You do not have permission to assign this task' }
+    // Verify hierarchical assignment permissions for all assignees
+    const { canAssignTask } = await import('@/lib/task-assignment-helpers')
+    for (const id of finalIds) {
+      const { allowed, reason } = await canAssignTask(userId, orgId, task.team_id, id)
+      if (!allowed) {
+        return { success: false, error: reason || `You do not have permission to assign user ${id}` }
+      }
     }
 
     const { error } = await supabase
       .from('tasks')
-      .update({ assignee_id: assigneeId, acceptance_status: assigneeId !== userId ? 'pending' : 'accepted' })
+      .update({ 
+        assignee_id: primaryId, 
+        assignee_ids: finalIds,
+        acceptance_status: primaryId && primaryId !== userId ? 'pending' : 'accepted' 
+      })
       .eq('id', taskId)
 
     if (error) {
       return { success: false, error: error.message }
     }
 
-    // Send acceptance-required notification to assignee
-    if (assigneeId !== userId) {
-      await createNotification({
-        userId: assigneeId,
-        organizationId: orgId,
-        type: 'task_acceptance_required',
-        actorId: userId,
-        taskId,
-      })
+    // Send acceptance-required notification to all assignees who are not the creator
+    for (const id of finalIds) {
+      if (id !== userId) {
+        await createNotification({
+          userId: id,
+          organizationId: orgId,
+          type: 'task_acceptance_required',
+          actorId: userId,
+          taskId,
+        })
+      }
     }
 
     return { success: true }
@@ -236,7 +249,7 @@ export async function respondToTaskAssignmentAction({
 }: {
   taskId: string
   response: 'accepted' | 'declined'
-  notificationId: string
+  notificationId?: string
 }) {
   try {
     const { userId, orgId } = await verifyPermission('updateTask')
@@ -285,10 +298,20 @@ export async function respondToTaskAssignmentAction({
       }
     }
 
-    await supabase
-      .from('notifications')
-      .update({ archived_at: new Date().toISOString(), read_at: new Date().toISOString() })
-      .eq('id', notificationId)
+    if (notificationId) {
+      await supabase
+        .from('notifications')
+        .update({ archived_at: new Date().toISOString(), read_at: new Date().toISOString() })
+        .eq('id', notificationId)
+    } else {
+      await supabase
+        .from('notifications')
+        .update({ archived_at: new Date().toISOString(), read_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('task_id', taskId)
+        .eq('type', 'task_acceptance_required')
+        .is('archived_at', null)
+    }
 
     return { success: true }
   } catch (error: any) {

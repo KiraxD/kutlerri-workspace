@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { TaskAssignmentDisplay } from '@/components/task-assignment-display'
 import { HierarchyBreadcrumb, HierarchyLevel } from '@/components/hierarchy-breadcrumb'
 import { SubTasksSection } from '@/components/SubTasksSection'
+import { TaskAcceptanceCard } from '@/components/task-acceptance-card'
 import {
   AlertCircle,
   ArrowDown,
@@ -47,6 +48,8 @@ export default async function TaskDetailPage({
       story_id,
       creator_id,
       assignee_id,
+      assignee_ids,
+      acceptance_status,
       created_at,
       updated_at,
       team:team_id(id, name, identifier, organization_id),
@@ -65,6 +68,42 @@ export default async function TaskDetailPage({
   if (!task) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">Task not found</div>
   }
+
+  // Fetch current user and pending notification details for acceptance display
+  const { data: { user } } = await supabase.auth.getUser()
+  const assigneeIds: string[] = (task as any).assignee_ids || (task.assignee_id ? [task.assignee_id] : [])
+  const isAssignee = user && assigneeIds.includes(user.id)
+  const isPending = (task as any).acceptance_status === 'pending'
+
+  let notificationId = ""
+  if (user && isAssignee && isPending) {
+    const { data: notif } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('task_id', task.id)
+      .eq('type', 'task_acceptance_required')
+      .is('archived_at', null)
+      .limit(1)
+      .maybeSingle()
+    if (notif) {
+      notificationId = notif.id
+    }
+  }
+
+  // Fetch profiles for all assignees
+  let assignees: any[] = []
+  if (assigneeIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .in('id', assigneeIds)
+    if (profiles) {
+      assignees = profiles
+    }
+  }
+
+  const creator: any = Array.isArray(task.creator) ? task.creator[0] : task.creator
 
   // Fetch sub-tasks for this task
   const { data: subTasksRaw } = await supabase
@@ -124,7 +163,20 @@ export default async function TaskDetailPage({
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-3xl">
-            <h1 className="text-2xl font-semibold mb-4 text-foreground">{task.title}</h1>
+            {isAssignee && isPending && (
+              <div className="mb-6">
+                <TaskAcceptanceCard
+                  taskId={task.id}
+                  taskIdentifier={task.identifier}
+                  taskTitle={task.title}
+                  assignedBy={creator?.full_name || creator?.email || 'Someone'}
+                  notificationId={notificationId}
+                />
+              </div>
+            )}
+            <h1 className={`text-2xl font-semibold mb-4 text-foreground ${(task.status === 'done' || task.status === 'Done') ? 'line-through text-muted-foreground/60' : ''}`}>
+              {task.title}
+            </h1>
 
             <div className="prose prose-sm dark:prose-invert max-w-none mb-8 text-foreground/90">
               {task.description ? (
@@ -143,14 +195,10 @@ export default async function TaskDetailPage({
 
         <aside className="w-[300px] border-l border-border bg-muted/10 flex flex-col p-4 gap-6 overflow-y-auto">
           <div className="space-y-4 p-3 bg-gradient-to-br from-blue-50/30 to-background border border-blue-200/30 rounded-lg">
-            <h3 className="text-xs font-semibold uppercase text-blue-700 tracking-wider">👤 Assign Task</h3>
-
             <TaskAssignmentDisplay
               taskId={task.id}
               teamId={task.team_id}
-              currentAssigneeId={task.assignee_id}
-              currentAssigneeName={(task.assignee as any)?.full_name}
-              currentAssigneeEmail={(task.assignee as any)?.email}
+              currentAssignees={assignees}
             />
 
             <p className="text-xs text-muted-foreground italic">

@@ -2,15 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Avatar } from '@/components/ui/avatar'
-import { Loader2, X } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Loader2, Check } from 'lucide-react'
 import { assignTaskAction } from '@/app/(dashboard)/tasks/new/actions'
 
 interface AssignableUser {
@@ -22,24 +15,22 @@ interface AssignableUser {
 interface TaskAssignmentSelectorProps {
   taskId: string
   teamId: string
-  currentAssigneeId?: string | null
-  currentAssigneeName?: string | null
-  onAssignmentChange?: (assigneeId: string | null) => void
+  currentAssignees: AssignableUser[]
+  onAssignmentChange?: (updatedAssignees: AssignableUser[]) => void
   className?: string
 }
 
 export function TaskAssignmentSelector({
   taskId,
   teamId,
-  currentAssigneeId,
-  currentAssigneeName,
+  currentAssignees,
   onAssignmentChange,
   className = '',
 }: TaskAssignmentSelectorProps) {
   const [assignees, setAssignees] = useState<AssignableUser[]>([])
   const [loading, setLoading] = useState(true)
-  const [assigning, setAssigning] = useState(false)
-  const [selectedId, setSelectedId] = useState<string | null>(currentAssigneeId || null)
+  const [assigningId, setAssigningId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<string[]>(currentAssignees.map(a => a.id))
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -50,8 +41,6 @@ export function TaskAssignmentSelector({
     try {
       setLoading(true)
       setError(null)
-
-      // Import the action dynamically to avoid build issues
       const { getTaskAssignees } = await import('@/app/(dashboard)/tasks/new/actions')
       const users = await getTaskAssignees(teamId)
       setAssignees(users || [])
@@ -63,115 +52,115 @@ export function TaskAssignmentSelector({
     }
   }
 
-  async function handleAssignmentChange(newAssigneeId: string | null) {
+  async function handleToggleUser(user: AssignableUser) {
+    if (assigningId) return
+    
     try {
-      setAssigning(true)
+      setAssigningId(user.id)
       setError(null)
-      setSelectedId(newAssigneeId)
 
-      if (!newAssigneeId) {
-        // Unassign
-        const { unassignTaskAction } = await import('@/app/(dashboard)/tasks/new/actions')
-        const result = await unassignTaskAction({ taskId })
-
-        if (!result.success) {
-          setError(result.error || 'Failed to unassign task')
-          setSelectedId(currentAssigneeId || null)
-          return
-        }
+      const isCurrentlySelected = selectedIds.includes(user.id)
+      let newSelectedIds: string[]
+      
+      if (isCurrentlySelected) {
+        newSelectedIds = selectedIds.filter(id => id !== user.id)
       } else {
-        // Assign to user
-        const result = await assignTaskAction({
-          taskId,
-          assigneeId: newAssigneeId,
-        })
-
-        if (!result.success) {
-          setError(result.error || 'Failed to assign task')
-          setSelectedId(currentAssigneeId || null)
-          return
-        }
+        newSelectedIds = [...selectedIds, user.id]
       }
 
-      onAssignmentChange?.(newAssigneeId)
+      // Update the DB
+      const result = await assignTaskAction({
+        taskId,
+        assigneeIds: newSelectedIds,
+      })
+
+      if (!result.success) {
+        setError(result.error || 'Failed to update assignment')
+        return
+      }
+
+      setSelectedIds(newSelectedIds)
+      
+      // Map IDs back to assignable user objects to pass to callback
+      const updatedAssignees = assignees.filter(u => newSelectedIds.includes(u.id))
+      onAssignmentChange?.(updatedAssignees)
     } catch (err: any) {
-      console.error('Error assigning task:', err)
+      console.error('Error toggling assignment:', err)
       setError(err.message || 'Failed to update assignment')
-      setSelectedId(currentAssigneeId || null)
     } finally {
-      setAssigning(false)
+      setAssigningId(null)
     }
   }
 
   if (loading) {
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
+      <div className={`flex items-center justify-center p-4 gap-2 ${className}`}>
         <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">Loading...</span>
+        <span className="text-xs text-muted-foreground">Loading team members...</span>
       </div>
     )
   }
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
-      <Select
-        value={selectedId || 'unassigned'}
-        onValueChange={handleAssignmentChange}
-        items={[
-          { label: 'Unassigned', value: 'unassigned' },
-          ...assignees.map((user) => ({
-            label: user.full_name || user.email,
-            value: user.id
-          }))
-        ]}
-      >
-        <SelectTrigger className="w-full" disabled={assigning || assignees.length === 0}>
-          {selectedId ? (
-            <SelectValue placeholder="Select assignee" />
-          ) : (
-            <span className="text-muted-foreground">Unassigned</span>
-          )}
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="unassigned">Unassigned</SelectItem>
-          {assignees.map((user) => (
-            <SelectItem key={user.id} value={user.id}>
-              <div className="flex items-center gap-2">
-                <Avatar className="w-5 h-5 text-xs">
-                  {user.full_name
-                    ?.split(' ')
-                    .map((n) => n[0])
-                    .join('')}
+      <div className="max-h-[200px] overflow-y-auto pr-1 space-y-1">
+        {assignees.map((user) => {
+          const isSelected = selectedIds.includes(user.id)
+          const isPending = assigningId === user.id
+          
+          return (
+            <button
+              key={user.id}
+              onClick={() => handleToggleUser(user)}
+              disabled={!!assigningId}
+              className={`w-full flex items-center justify-between p-1.5 rounded-md text-left text-xs transition-colors hover:bg-muted/50 ${
+                isSelected ? 'bg-primary/5 font-medium' : ''
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Avatar className="w-5 h-5 text-[10px] shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {user.full_name
+                      ? user.full_name.split(' ').map((n) => n[0]).join('').toUpperCase()
+                      : user.email[0].toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
-                <span>{user.full_name || user.email}</span>
+                <span className="truncate">{user.full_name || user.email}</span>
               </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+              <div className="w-4 h-4 shrink-0 flex items-center justify-center">
+                {isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                ) : isSelected ? (
+                  <Check className="w-3.5 h-3.5 text-primary" />
+                ) : null}
+              </div>
+            </button>
+          )
+        })}
+      </div>
 
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
 
       {assignees.length === 0 && !error && (
-        <p className="text-xs text-muted-foreground">
-          No team members available for assignment
+        <p className="text-[10px] text-muted-foreground italic">
+          No team members available
         </p>
       )}
     </div>
   )
 }
 
-/**
- * Simple assignment button component
- * Shows current assignee and allows quick assignment
- */
 export function TaskAssignmentButton({
   taskId,
   teamId,
-  currentAssigneeId,
-  currentAssigneeName,
+  currentAssignees,
   onAssignmentChange,
-}: TaskAssignmentSelectorProps) {
+}: {
+  taskId: string
+  teamId: string
+  currentAssignees: AssignableUser[]
+  onAssignmentChange?: (updatedAssignees: AssignableUser[]) => void
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -180,36 +169,31 @@ export function TaskAssignmentButton({
         variant="outline"
         size="sm"
         onClick={() => setOpen(!open)}
-        className="gap-2"
+        className="h-6 px-2 py-0 text-[10px] gap-1 font-semibold"
       >
-        {currentAssigneeId ? (
-          <>
-            <Avatar className="w-4 h-4 text-xs">
-              {currentAssigneeName
-                ?.split(' ')
-                .map((n) => n[0])
-                .join('')}
-            </Avatar>
-            <span className="text-xs">{currentAssigneeName || 'Assigned'}</span>
-          </>
-        ) : (
-          <span className="text-xs text-muted-foreground">Assign</span>
-        )}
+        Assign
       </Button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-lg z-50 p-3">
-          <TaskAssignmentSelector
-            taskId={taskId}
-            teamId={teamId}
-            currentAssigneeId={currentAssigneeId}
-            currentAssigneeName={currentAssigneeName}
-            onAssignmentChange={(id) => {
-              onAssignmentChange?.(id)
-              setOpen(false)
-            }}
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setOpen(false)} 
           />
-        </div>
+          <div className="absolute right-0 mt-2 w-56 bg-popover border border-border rounded-lg shadow-lg z-50 p-2">
+            <div className="px-1.5 py-1 border-b border-border mb-1.5">
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Select Assignees
+              </span>
+            </div>
+            <TaskAssignmentSelector
+              taskId={taskId}
+              teamId={teamId}
+              currentAssignees={currentAssignees}
+              onAssignmentChange={onAssignmentChange}
+            />
+          </div>
+        </>
       )}
     </div>
   )
