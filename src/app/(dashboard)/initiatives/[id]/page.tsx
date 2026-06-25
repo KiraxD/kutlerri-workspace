@@ -5,6 +5,8 @@ import { Compass, ArrowLeft, Layers, Calendar, Plus, ArrowRight } from 'lucide-r
 import { Button } from '@/components/ui/button'
 import { STATUS_DOT, STATUS_STYLES } from '@/lib/types'
 
+import { EditDeleteControls } from '@/components/EditDeleteControls'
+
 export default async function InitiativeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
@@ -65,26 +67,40 @@ export default async function InitiativeDetailPage({ params }: { params: Promise
             )}
           </div>
 
-          <div className="ml-8 shrink-0 space-y-3 text-xs">
-            {initiative.owner && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Owner</span>
-                <div className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold">
-                  {(initiative.owner.full_name || initiative.owner.email || '?').charAt(0).toUpperCase()}
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <EditDeleteControls
+              entityId={initiative.id}
+              entityType="initiative"
+              initialData={{
+                name: initiative.name,
+                description: initiative.description,
+                status: initiative.status,
+                priority: initiative.priority,
+              }}
+              redirectOnDelete="/initiatives"
+            />
+
+            <div className="space-y-3 text-xs">
+              {initiative.owner && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Owner</span>
+                  <div className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold">
+                    {(initiative.owner.full_name || initiative.owner.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <span>{initiative.owner.full_name || initiative.owner.email}</span>
                 </div>
-                <span>{initiative.owner.full_name || initiative.owner.email}</span>
-              </div>
-            )}
-            {initiative.target_date && (
+              )}
+              {initiative.target_date && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Target</span>
+                  <Calendar className="w-3 h-3" />
+                  <span>{new Date(initiative.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Target</span>
-                <Calendar className="w-3 h-3" />
-                <span>{new Date(initiative.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span className="text-foreground font-medium w-16">Epics</span>
+                <span className="font-bold text-foreground">{totalEpics}</span>
               </div>
-            )}
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-foreground font-medium w-16">Epics</span>
-              <span className="font-bold text-foreground">{totalEpics}</span>
             </div>
           </div>
         </div>

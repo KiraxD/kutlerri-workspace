@@ -67,3 +67,55 @@ export async function createEpicAction({
     return { success: false, error: error.message }
   }
 }
+
+export async function updateEpicAction({
+  id,
+  name,
+  description,
+  status,
+  priority,
+}: {
+  id: string
+  name: string
+  description?: string | null
+  status?: string
+  priority?: string
+}) {
+  try {
+    await verifyPermission('createEpic')
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('epics')
+      .update({
+        name,
+        description: description || null,
+        status: (status as any) || 'Backlog',
+        priority: (priority as any) || 'None',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function deleteEpicAction(id: string) {
+  try {
+    await verifyPermission('createEpic')
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('epics')
+      .delete()
+      .eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

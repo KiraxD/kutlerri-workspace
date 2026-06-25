@@ -16,6 +16,8 @@ const PRIORITY_ICON: Record<string, string> = {
   None: '—', Low: '↓', Medium: '↔', High: '↑', Urgent: '⚡',
 }
 
+import { EditDeleteControls } from '@/components/EditDeleteControls'
+
 export default async function EpicDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
@@ -103,30 +105,44 @@ export default async function EpicDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
 
-          <div className="ml-8 shrink-0 space-y-3 text-xs">
-            {epic.owner && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Owner</span>
-                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
-                  {(epic.owner.full_name || epic.owner.email || '?').charAt(0).toUpperCase()}
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <EditDeleteControls
+              entityId={epic.id}
+              entityType="epic"
+              initialData={{
+                name: epic.name,
+                description: epic.description,
+                status: epic.status,
+                priority: epic.priority,
+              }}
+              redirectOnDelete="/epics"
+            />
+
+            <div className="space-y-3 text-xs">
+              {epic.owner && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Owner</span>
+                  <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
+                    {(epic.owner.full_name || epic.owner.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <span>{epic.owner.full_name || epic.owner.email}</span>
                 </div>
-                <span>{epic.owner.full_name || epic.owner.email}</span>
-              </div>
-            )}
-            {epic.target_date && (
+              )}
+              {epic.target_date && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Target</span>
+                  <Calendar className="w-3 h-3" />
+                  <span>{new Date(epic.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+              )}
               <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Target</span>
-                <Calendar className="w-3 h-3" />
-                <span>{new Date(epic.target_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                <span className="text-foreground font-medium w-16">Stories</span>
+                <span className="font-bold text-foreground">{totalStories}</span>
               </div>
-            )}
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-foreground font-medium w-16">Stories</span>
-              <span className="font-bold text-foreground">{totalStories}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-foreground font-medium w-16">Tasks</span>
-              <span className="font-bold text-foreground">{totalTasks}</span>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <span className="text-foreground font-medium w-16">Tasks</span>
+                <span className="font-bold text-foreground">{totalTasks}</span>
+              </div>
             </div>
           </div>
         </div>

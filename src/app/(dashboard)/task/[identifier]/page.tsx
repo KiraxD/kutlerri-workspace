@@ -20,6 +20,8 @@ import {
   XCircle,
 } from 'lucide-react'
 
+import { EditDeleteControls } from '@/components/EditDeleteControls'
+
 export default async function TaskDetailPage({
   params,
 }: {
@@ -93,6 +95,19 @@ export default async function TaskDetailPage({
       <div className="flex items-center gap-2 px-6 py-3 border-b border-border text-sm text-muted-foreground bg-gradient-to-r from-muted/50 to-background">
         <HierarchyLevel level="task" />
         <div className="flex-1" />
+        <EditDeleteControls
+          entityId={task.id}
+          entityType="task"
+          initialData={{
+            title: task.title,
+            description: task.description,
+            status: task.status,
+            priority: task.priority,
+            estimate: task.estimate,
+          }}
+          redirectOnDelete="/my-tasks"
+        />
+        <div className="h-4 w-px bg-border mx-2" />
         <span className="font-medium hover:text-foreground cursor-pointer">{(task.team as any)?.identifier}</span>
         <ChevronRight className="w-4 h-4" />
         <span className="font-mono uppercase">{task.identifier}</span>

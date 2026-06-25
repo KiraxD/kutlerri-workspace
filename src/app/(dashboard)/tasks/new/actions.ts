@@ -1,4 +1,4 @@
-﻿'use server'
+'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -162,6 +162,61 @@ export async function getTaskAssignees(teamId: string) {
     return await getAssignableUsers(userId, orgId, teamId)
   } catch (error: any) {
     return []
+  }
+}
+
+export async function updateTaskAction({
+  id,
+  title,
+  description,
+  status,
+  priority,
+  estimate,
+}: {
+  id: string
+  title: string
+  description?: string | null
+  status: string
+  priority: string
+  estimate?: number | null
+}) {
+  try {
+    const { userId } = await verifyPermission('updateTask')
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        title,
+        description: description || null,
+        status: status as any,
+        priority: priority as any,
+        estimate: estimate || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function deleteTaskAction(id: string) {
+  try {
+    await verifyPermission('deleteTask')
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
   }
 }
 

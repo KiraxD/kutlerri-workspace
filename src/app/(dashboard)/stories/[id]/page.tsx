@@ -23,6 +23,8 @@ const TASK_STATUS_ICON: Record<string, React.ReactNode> = {
   'In Progress': <Clock className="w-4 h-4 text-yellow-500" />,
 }
 
+import { EditDeleteControls } from '@/components/EditDeleteControls'
+
 export default async function StoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
@@ -110,39 +112,53 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
             )}
           </div>
 
-          {/* Meta sidebar */}
-          <div className="ml-8 shrink-0 space-y-3 text-xs">
-            {story.owner && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Owner</span>
-                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">
-                  {(story.owner.full_name || story.owner.email || '?').charAt(0).toUpperCase()}
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            <EditDeleteControls
+              entityId={story.id}
+              entityType="story"
+              initialData={{
+                name: story.name,
+                description: story.description,
+                status: story.status,
+                priority: story.priority,
+                estimate: story.estimate,
+              }}
+              redirectOnDelete="/stories"
+            />
+
+            <div className="space-y-3 text-xs">
+              {story.owner && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Owner</span>
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">
+                    {(story.owner.full_name || story.owner.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <span>{story.owner.full_name || story.owner.email}</span>
                 </div>
-                <span>{story.owner.full_name || story.owner.email}</span>
-              </div>
-            )}
-            {story.assignee && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Assignee</span>
-                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
-                  {(story.assignee.full_name || story.assignee.email || '?').charAt(0).toUpperCase()}
+              )}
+              {story.assignee && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Assignee</span>
+                  <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
+                    {(story.assignee.full_name || story.assignee.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <span>{story.assignee.full_name || story.assignee.email}</span>
                 </div>
-                <span>{story.assignee.full_name || story.assignee.email}</span>
-              </div>
-            )}
-            {story.due_date && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Due</span>
-                <Calendar className="w-3 h-3" />
-                <span>{new Date(story.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-              </div>
-            )}
-            {story.estimate && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-foreground font-medium w-16">Estimate</span>
-                <span>{story.estimate} pts</span>
-              </div>
-            )}
+              )}
+              {story.due_date && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Due</span>
+                  <Calendar className="w-3 h-3" />
+                  <span>{new Date(story.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                </div>
+              )}
+              {story.estimate && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span className="text-foreground font-medium w-16">Estimate</span>
+                  <span>{story.estimate} pts</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
