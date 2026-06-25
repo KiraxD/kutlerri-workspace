@@ -125,29 +125,7 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
             )}
           </div>
 
-          {/* Hierarchy section */}
-          <div>
-            <SectionLabel>Hierarchy</SectionLabel>
-            <div className="space-y-0.5 mt-1">
 
-              {isNavItemVisible(role, 'my-tasks') && (
-                <NavItem
-                  href="/my-tasks"
-                  icon={<CheckCircle2 className="w-4 h-4 text-indigo-400" />}
-                  label="Tasks"
-                  depth={3}
-                />
-              )}
-              <NavItem
-                href="/sub-tasks"
-                icon={<GitBranch className="w-3.5 h-3.5 text-violet-400" style={{ transform: 'rotate(180deg)' }} />}
-                label="Sub Tasks"
-                depth={4}
-              />
-            </div>
-          </div>
-
-          <Divider />
 
           {/* Work section */}
           <div>
