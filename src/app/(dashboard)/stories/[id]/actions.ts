@@ -96,7 +96,7 @@ export async function createSubTask({
       .from('sub_tasks')
       .insert({
         task_id: taskId,
-        title,
+        name: title,
         assignee_id: assigneeId || null,
       })
       .select()
@@ -104,9 +104,14 @@ export async function createSubTask({
 
     if (error) return { success: false, error: error.message }
 
+    const formattedSubtask = subtask ? {
+      ...subtask,
+      title: subtask.name
+    } : null
+
     revalidatePath(`/task`)
     if (storyId) revalidatePath(`/stories/${storyId}`)
-    return { success: true, subtask }
+    return { success: true, subtask: formattedSubtask }
   } catch (error: any) {
     return { success: false, error: error.message }
   }

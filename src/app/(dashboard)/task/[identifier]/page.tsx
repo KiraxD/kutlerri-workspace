@@ -66,12 +66,13 @@ export default async function TaskDetailPage({
   // Fetch sub-tasks for this task
   const { data: subTasksRaw } = await supabase
     .from('sub_tasks')
-    .select('id, title, status, completed_at, assignee:assignee_id(id, full_name, email)')
+    .select('id, name, status, completed_at, assignee:assignee_id(id, full_name, email)')
     .eq('task_id', task.id)
     .order('created_at', { ascending: true })
 
   const subTasks = (subTasksRaw as any[])?.map(st => ({
     ...st,
+    title: st.name, // Map database column name to UI property title
     assignee: Array.isArray(st.assignee) ? st.assignee[0] : st.assignee
   })) ?? []
 
