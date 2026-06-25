@@ -1,4 +1,4 @@
-﻿import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { createTask } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,6 +39,17 @@ export default async function NewTaskPage() {
     .from('team_members')
     .select('user_id, profiles:user_id(id, email, full_name)')
 
+  // Fetch projects for project selection
+  let projects: any[] = []
+  if (teams.length > 0) {
+    const { data } = await supabase
+      .from('projects')
+      .select('id, name')
+      .in('team_id', teams.map((t: any) => t.id))
+      .order('name')
+    projects = data ?? []
+  }
+
   return (
     <div className="flex flex-col h-full items-center justify-center bg-muted/20">
       <div className="w-full max-w-2xl bg-background border border-border rounded-lg shadow-sm overflow-hidden">
@@ -48,7 +59,7 @@ export default async function NewTaskPage() {
         <form action={createTask} className="p-6 space-y-6">
           <div className="space-y-4">
             <div className="flex gap-4">
-              <div className="flex-1 space-y-2">
+              <div className="flex-grow space-y-2">
                 <Label htmlFor="team_id">Team</Label>
                 <Select name="team_id" defaultValue={teams[0].id}>
                   <SelectTrigger>
@@ -64,6 +75,25 @@ export default async function NewTaskPage() {
                 </Select>
               </div>
 
+              <div className="flex-grow space-y-2">
+                <Label htmlFor="project_id">Project (Optional)</Label>
+                <Select name="project_id">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No project</SelectItem>
+                    {projects.map((project: any) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
               <div className="flex-1 space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select name="status" defaultValue="Todo">

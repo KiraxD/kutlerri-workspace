@@ -15,6 +15,7 @@ import {
   Plus,
   ArrowRight,
   TrendingUp,
+  GitBranch,
 } from 'lucide-react'
 import Link from 'next/link'
 import { STATUS_DOT, STATUS_STYLES, STATUS_ORDER } from '@/lib/types'
@@ -26,6 +27,7 @@ interface ProjectDetailClientProps {
   epics: any[]
   stories: any[]
   tasks: any[]
+  subTasks: any[]
 }
 
 const TAB_ICONS: Record<string, React.ReactNode> = {
@@ -34,6 +36,7 @@ const TAB_ICONS: Record<string, React.ReactNode> = {
   epics: <Layers className="w-4 h-4 text-amber-400" />,
   stories: <BookOpen className="w-4 h-4 text-green-400" />,
   tasks: <CheckCircle2 className="w-4 h-4 text-indigo-400" />,
+  subtasks: <GitBranch className="w-4 h-4 text-violet-400 rotate-180" />,
 }
 
 export default function ProjectDetailClient({
@@ -43,8 +46,9 @@ export default function ProjectDetailClient({
   epics,
   stories,
   tasks,
+  subTasks,
 }: ProjectDetailClientProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'initiatives' | 'epics' | 'stories' | 'tasks'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'initiatives' | 'epics' | 'stories' | 'tasks' | 'subtasks'>('overview')
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not set'
@@ -367,6 +371,48 @@ export default function ProjectDetailClient({
             )}
           </div>
         )
+      case 'subtasks':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-base font-semibold">Project Sub Tasks ({subTasks.length})</h2>
+            </div>
+
+            {subTasks.length === 0 ? (
+              <div className="border border-dashed border-border rounded-xl p-12 text-center text-muted-foreground">
+                <GitBranch className="w-8 h-8 mx-auto mb-3 text-muted-foreground/60 rotate-180" />
+                <p className="text-sm font-medium">No sub-tasks found in this project</p>
+                <p className="text-xs mt-1">Sub-tasks are created under individual parent tasks</p>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {subTasks.map((subTask: any) => (
+                  <Link key={subTask.id} href={`/task/${subTask.task?.identifier}`}>
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:border-violet-400/50 hover:shadow-sm transition-all group">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[subTask.status] ?? 'bg-gray-300'}`} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate group-hover:text-violet-600 transition-colors">
+                            {subTask.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            Parent Task: <span className="font-mono text-foreground font-semibold">{subTask.task?.identifier}</span> - {subTask.task?.title}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6 shrink-0">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[subTask.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {subTask.status}
+                        </span>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )
     }
   }
 
@@ -397,7 +443,7 @@ export default function ProjectDetailClient({
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-border px-8 bg-muted/10">
-        {(['overview', 'initiatives', 'epics', 'stories', 'tasks'] as const).map((tab) => {
+        {(['overview', 'initiatives', 'epics', 'stories', 'tasks', 'subtasks'] as const).map((tab) => {
           const isActive = activeTab === tab
           return (
             <button
@@ -410,7 +456,7 @@ export default function ProjectDetailClient({
               }`}
             >
               {TAB_ICONS[tab]}
-              <span>{tab}</span>
+              <span>{tab === 'subtasks' ? 'Sub Tasks' : tab}</span>
             </button>
           )
         })}

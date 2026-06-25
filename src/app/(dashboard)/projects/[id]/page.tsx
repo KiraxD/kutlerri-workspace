@@ -91,6 +91,18 @@ export default async function ProjectDetailPage({
     .eq('team_id', project.team_id)
     .order('created_at', { ascending: false })
 
+  // Fetch Sub-Tasks linked to the project's tasks
+  let projectSubTasks: any[] = []
+  if (tasks && tasks.length > 0) {
+    const taskIds = tasks.map((t) => t.id)
+    const { data: subTaskData } = await supabase
+      .from('sub_tasks')
+      .select('*, task:tasks(id, title, identifier)')
+      .in('task_id', taskIds)
+      .order('created_at', { ascending: false })
+    projectSubTasks = subTaskData ?? []
+  }
+
   return (
     <ProjectDetailClient
       project={project}
@@ -99,6 +111,7 @@ export default async function ProjectDetailPage({
       epics={epics ?? []}
       stories={stories}
       tasks={tasks ?? []}
+      subTasks={projectSubTasks}
     />
   )
 }

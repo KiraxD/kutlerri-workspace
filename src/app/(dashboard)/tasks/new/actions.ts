@@ -16,6 +16,7 @@ export async function createTask(formData: FormData) {
   const status = (formData.get('status') as string) || 'Todo'
   const priority = (formData.get('priority') as string) || 'no_priority'
   const assignee_id = (formData.get('assignee_id') as string) || null
+  const project_id = (formData.get('project_id') as string) || null
 
   if (!title || !team_id) {
     throw new Error('Title and Team are required')
@@ -43,6 +44,7 @@ export async function createTask(formData: FormData) {
       priority,
       creator_id: userId,
       assignee_id,
+      project_id: project_id || null,
       acceptance_status: assignee_id && assignee_id !== userId ? 'pending' : 'accepted',
     })
     .select('id, identifier, title')
