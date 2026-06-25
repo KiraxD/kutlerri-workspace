@@ -56,9 +56,9 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
 
   return (
     <aside className="w-[240px] flex-shrink-0 flex flex-col z-20 relative" style={{ height: '100vh' }}>
-      {/* Background with subtle gradient */}
-      <div className="absolute inset-0 bg-[#0a0a0f] border-r border-white/[0.06]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-violet-950/20 via-transparent to-transparent pointer-events-none" />
+      {/* Background with logo's bg color (pure black) */}
+      <div className="absolute inset-0 bg-[#000000] border-r border-white/[0.05]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-violet-950/10 via-transparent to-transparent pointer-events-none" />
 
       {/* Content */}
       <div className="relative flex flex-col h-full">
@@ -68,10 +68,10 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
           <div className="flex flex-col gap-1.5 mb-4">
             <div className="relative h-7 w-28">
               <Image
-                src="/images/kutlerri-logo.png"
+                src="/images/images.png"
                 alt="Kutlerri"
                 fill
-                className="object-contain object-left filter brightness-0 invert opacity-90"
+                className="object-contain object-left"
                 priority
               />
             </div>
