@@ -14,13 +14,16 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
     <div className="flex h-screen w-full items-center justify-center bg-[#0d0d0d] px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center space-y-2 text-center mb-6">
-          <Image
-            src="/images/kutlerri-logo.png"
-            alt="Kutlerri"
-            width={56}
-            height={56}
-            className="rounded-2xl shadow-md mb-2"
-          />
+          <div className="relative mb-4">
+            <div className="absolute inset-0 bg-violet-500/20 blur-xl rounded-full mix-blend-screen" />
+            <Image
+              src="/images/kutlerri-logo.png"
+              alt="Kutlerri"
+              width={80}
+              height={80}
+              className="relative rounded-2xl shadow-2xl border border-white/10 ring-1 ring-white/5"
+            />
+          </div>
           <h1 className="text-2xl font-semibold tracking-tight text-white">Welcome to Kutlerri</h1>
           <p className="text-sm text-white/60">Enter your email to sign in to your account</p>
         </div>
