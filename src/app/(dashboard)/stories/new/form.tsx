@@ -13,9 +13,11 @@ const PRIORITIES = ['None', 'Low', 'Medium', 'High', 'Urgent']
 interface NewStoryFormProps {
   epics: Array<{ id: string; name: string; initiative?: { name: string } | null }>
   members: Array<{ id: string; full_name: string | null; email: string }>
+  projectId?: string
+  epicId?: string
 }
 
-export function NewStoryForm({ epics, members }: NewStoryFormProps) {
+export function NewStoryForm({ epics, members, projectId, epicId }: NewStoryFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -39,7 +41,11 @@ export function NewStoryForm({ epics, members }: NewStoryFormProps) {
     })
 
     if (result.success) {
-      router.push('/stories')
+      if (projectId) {
+        router.push(`/projects/${projectId}?tab=stories`)
+      } else {
+        router.push('/stories')
+      }
       router.refresh()
     } else {
       setError(result.error ?? 'Failed to create story')
@@ -79,6 +85,7 @@ export function NewStoryForm({ epics, members }: NewStoryFormProps) {
           <label className="text-sm font-medium text-foreground">Parent Epic</label>
           <select
             name="epicId"
+            defaultValue={epicId || ""}
             className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition"
           >
             <option value="">No Epic</option>
@@ -172,7 +179,7 @@ export function NewStoryForm({ epics, members }: NewStoryFormProps) {
       )}
 
       <div className="flex items-center justify-between pt-2">
-        <Link href="/stories">
+        <Link href={projectId ? `/projects/${projectId}?tab=stories` : "/stories"}>
           <Button variant="ghost" size="sm" type="button">
             Cancel
           </Button>

@@ -27,7 +27,7 @@ async function handleCreateInitiative(formData: FormData) {
 
   if (result.success) {
     if (projectId) {
-      redirect(`/projects/${projectId}`)
+      redirect(`/projects/${projectId}?tab=initiatives`)
     } else {
       redirect('/projects')
     }

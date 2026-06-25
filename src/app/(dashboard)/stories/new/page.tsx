@@ -3,7 +3,12 @@ import { BookOpen, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { NewStoryForm } from './form'
 
-export default async function NewStoryPage() {
+export default async function NewStoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId?: string; epicId?: string }>
+}) {
+  const { projectId, epicId } = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -38,7 +43,7 @@ export default async function NewStoryPage() {
     <div className="flex flex-col bg-background min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 px-8 py-5 border-b border-border bg-gradient-to-r from-emerald-50 to-background">
-        <Link href="/stories">
+        <Link href={projectId ? `/projects/${projectId}?tab=stories` : "/stories"}>
           <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
             <ArrowLeft className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -65,7 +70,7 @@ export default async function NewStoryPage() {
         <span>Sub Tasks</span>
       </div>
 
-      <NewStoryForm epics={epics} members={members} />
+      <NewStoryForm epics={epics} members={members} projectId={projectId} epicId={epicId} />
     </div>
   )
 }

@@ -51,7 +51,8 @@ export default async function TaskDetailPage({
       updated_at,
       team:team_id(id, name, identifier, organization_id),
       creator:creator_id(id, email, full_name),
-      assignee:assignee_id(id, email, full_name)
+      assignee:assignee_id(id, email, full_name),
+      project:project_id(id, name)
     `)
     .eq('identifier', identifier)
     .single()
@@ -86,8 +87,12 @@ export default async function TaskDetailPage({
       <HierarchyBreadcrumb
         items={[
           { label: 'Organization', href: '/home' },
-          { label: (task.team as any)?.name || 'Team', href: `/teams` },
-          { label: 'Tasks', href: '/my-tasks' },
+          ...(task.project_id ? [
+            { label: (task.project as any)?.name || 'Project', href: `/projects/${task.project_id}?tab=tasks` }
+          ] : [
+            { label: (task.team as any)?.name || 'Team', href: `/teams` },
+            { label: 'Tasks', href: '/my-tasks' }
+          ]),
           { label: task.identifier, current: true },
         ]}
       />
@@ -105,7 +110,7 @@ export default async function TaskDetailPage({
             priority: task.priority,
             estimate: task.estimate,
           }}
-          redirectOnDelete="/my-tasks"
+          redirectOnDelete={task.project_id ? `/projects/${task.project_id}?tab=tasks` : "/my-tasks"}
         />
         <div className="h-4 w-px bg-border mx-2" />
         <span className="font-medium hover:text-foreground cursor-pointer">{(task.team as any)?.identifier}</span>

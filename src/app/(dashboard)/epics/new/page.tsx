@@ -29,7 +29,7 @@ async function handleCreateEpic(formData: FormData) {
 
   if (result.success) {
     if (projectId) {
-      redirect(`/projects/${projectId}`)
+      redirect(`/projects/${projectId}?tab=epics`)
     } else {
       redirect('/projects')
     }

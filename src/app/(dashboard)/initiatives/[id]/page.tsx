@@ -39,13 +39,13 @@ export default async function InitiativeDetailPage({ params }: { params: Promise
       {/* Header */}
       <div className="px-8 py-5 border-b border-border bg-gradient-to-r from-violet-50 to-background">
         <div className="flex items-center gap-3 mb-3">
-          <Link href="/initiatives">
+          <Link href={initiative.project_id ? `/projects/${initiative.project_id}?tab=initiatives` : "/projects"}>
             <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
               <ArrowLeft className="w-4 h-4 text-muted-foreground" />
             </button>
           </Link>
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Link href="/initiatives" className="hover:text-foreground transition-colors">Initiatives</Link>
+            <Link href={initiative.project_id ? `/projects/${initiative.project_id}?tab=initiatives` : "/projects"} className="hover:text-foreground transition-colors">Initiatives</Link>
             <span>→</span>
             <span className="text-foreground font-medium flex items-center gap-1">
               <Compass className="w-3 h-3 text-violet-600" />
@@ -77,7 +77,7 @@ export default async function InitiativeDetailPage({ params }: { params: Promise
                 status: initiative.status,
                 priority: initiative.priority,
               }}
-              redirectOnDelete="/initiatives"
+              redirectOnDelete={initiative.project_id ? `/projects/${initiative.project_id}?tab=initiatives` : "/projects"}
             />
 
             <div className="space-y-3 text-xs">
@@ -127,7 +127,7 @@ export default async function InitiativeDetailPage({ params }: { params: Promise
             <Layers className="w-4 h-4 text-blue-600" /> Epics
             <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{totalEpics}</span>
           </h2>
-          <Link href={`/epics/new`}>
+          <Link href={initiative.project_id ? `/epics/new?projectId=${initiative.project_id}&initiativeId=${initiative.id}` : `/epics/new?initiativeId=${initiative.id}`}>
             <Button size="sm" variant="outline" className="gap-2 text-xs">
               <Plus className="w-3 h-3" /> New Epic
             </Button>

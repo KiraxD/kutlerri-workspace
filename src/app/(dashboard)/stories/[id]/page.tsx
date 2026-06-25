@@ -36,7 +36,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
   const { data: story, error } = await supabase
     .from('stories')
     .select(
-      '*, epic:epics(id, name, initiative:initiatives(id, name)), owner:profiles!owner_id(id, full_name, email), assignee:profiles!assignee_id(id, full_name, email)'
+      '*, epic:epics(id, name, project_id, initiative:initiatives(id, name)), owner:profiles!owner_id(id, full_name, email), assignee:profiles!assignee_id(id, full_name, email)'
     )
     .eq('id', id)
     .single()
@@ -60,7 +60,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
       {/* Header */}
       <div className="px-8 py-5 border-b border-border bg-gradient-to-r from-emerald-50 to-background">
         <div className="flex items-center gap-3 mb-3">
-          <Link href="/stories">
+          <Link href={story.epic?.project_id ? `/projects/${story.epic.project_id}?tab=stories` : "/projects"}>
             <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
               <ArrowLeft className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -69,7 +69,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
             {story.epic?.initiative && (
               <>
-                <Link href="/initiatives" className="hover:text-foreground transition-colors flex items-center gap-1">
+                <Link href={story.epic?.project_id ? `/projects/${story.epic.project_id}?tab=initiatives` : "/initiatives"} className="hover:text-foreground transition-colors flex items-center gap-1">
                   <Compass className="w-3 h-3" />
                   {story.epic.initiative.name}
                 </Link>
@@ -123,7 +123,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
                 priority: story.priority,
                 estimate: story.estimate,
               }}
-              redirectOnDelete="/stories"
+              redirectOnDelete={story.epic?.project_id ? `/projects/${story.epic.project_id}?tab=stories` : "/stories"}
             />
 
             <div className="space-y-3 text-xs">

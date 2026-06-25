@@ -63,7 +63,7 @@ export default async function EpicDetailPage({ params }: { params: Promise<{ id:
       {/* Header */}
       <div className="px-8 py-5 border-b border-border bg-gradient-to-r from-blue-50 to-background">
         <div className="flex items-center gap-3 mb-3">
-          <Link href="/epics">
+          <Link href={epic.project_id ? `/projects/${epic.project_id}?tab=epics` : "/projects"}>
             <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
               <ArrowLeft className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -78,7 +78,7 @@ export default async function EpicDetailPage({ params }: { params: Promise<{ id:
                 <span>→</span>
               </>
             )}
-            <Link href="/epics" className="hover:text-foreground transition-colors">Epics</Link>
+            <Link href={epic.project_id ? `/projects/${epic.project_id}?tab=epics` : "/projects"} className="hover:text-foreground transition-colors">Epics</Link>
             <span>→</span>
             <span className="text-foreground font-medium flex items-center gap-1">
               <Layers className="w-3 h-3 text-blue-600" />
@@ -115,7 +115,7 @@ export default async function EpicDetailPage({ params }: { params: Promise<{ id:
                 status: epic.status,
                 priority: epic.priority,
               }}
-              redirectOnDelete="/epics"
+              redirectOnDelete={epic.project_id ? `/projects/${epic.project_id}?tab=epics` : "/projects"}
             />
 
             <div className="space-y-3 text-xs">
@@ -170,7 +170,7 @@ export default async function EpicDetailPage({ params }: { params: Promise<{ id:
             Stories
             <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{totalStories}</span>
           </h2>
-          <Link href="/stories/new">
+          <Link href={epic.project_id ? `/stories/new?projectId=${epic.project_id}&epicId=${epic.id}` : `/stories/new?epicId=${epic.id}`}>
             <Button size="sm" variant="outline" className="gap-2 text-xs">
               <Plus className="w-3 h-3" /> New Story
             </Button>
