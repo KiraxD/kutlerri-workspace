@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Plus, Loader2, Check, Square, X, GitBranch } from 'lucide-react'
+import { Plus, Loader2, Check, Square, X, GitBranch, User } from 'lucide-react'
 import { createSubTask, toggleSubTask } from '@/app/(dashboard)/stories/[id]/actions'
+import { AssigneePicker, type AssignableUser } from '@/components/AssigneePicker'
 
 interface SubTask {
   id: string
   title: string
   status: string | null
   completed_at: string | null
+  assignee?: { id: string; full_name: string | null; email: string } | null
 }
 
 interface SubTasksSectionProps {
@@ -20,6 +22,7 @@ interface SubTasksSectionProps {
 export function SubTasksSection({ taskId, initialSubTasks, storyId }: SubTasksSectionProps) {
   const [subtasks, setSubtasks] = useState<SubTask[]>(initialSubTasks)
   const [newTitle, setNewTitle] = useState('')
+  const [newAssigneeId, setNewAssigneeId] = useState<string | null>(null)
   const [showInput, setShowInput] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -31,10 +34,11 @@ export function SubTasksSection({ taskId, initialSubTasks, storyId }: SubTasksSe
     if (!newTitle.trim()) return
     setError(null)
     startTransition(async () => {
-      const result = await createSubTask({ taskId, title: newTitle.trim(), storyId })
+      const result = await createSubTask({ taskId, title: newTitle.trim(), storyId, assigneeId: newAssigneeId })
       if (result.success && result.subtask) {
         setSubtasks((prev) => [...prev, result.subtask as SubTask])
         setNewTitle('')
+        setNewAssigneeId(null)
         setShowInput(false)
       } else {
         setError(result.error ?? 'Failed to add sub-task')
@@ -117,6 +121,11 @@ export function SubTasksSection({ taskId, initialSubTasks, storyId }: SubTasksSe
               >
                 {st.title}
               </span>
+              {st.assignee && (
+                <div className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[9px] font-bold shrink-0" title={st.assignee.full_name || st.assignee.email}>
+                  {(st.assignee.full_name || st.assignee.email).charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
           )
         })}
@@ -128,29 +137,40 @@ export function SubTasksSection({ taskId, initialSubTasks, storyId }: SubTasksSe
 
       {/* Inline add input */}
       {showInput && (
-        <form onSubmit={handleAdd} className="flex items-center gap-2 mt-2">
-          <input
-            autoFocus
-            type="text"
-            placeholder="Sub-task title..."
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            className="flex-1 text-xs bg-background border border-border rounded-md px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-violet-400 transition-all"
-          />
-          <button
-            type="submit"
-            disabled={isPending || !newTitle.trim()}
-            className="p-1.5 rounded-md bg-violet-500 hover:bg-violet-600 text-white disabled:opacity-50 transition-colors"
-          >
-            {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => { setShowInput(false); setError(null) }}
-            className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors"
-          >
-            <X className="w-3 h-3" />
-          </button>
+        <form onSubmit={handleAdd} className="flex flex-col gap-2 mt-2 bg-muted/30 p-2 rounded-lg border border-border">
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              type="text"
+              placeholder="Sub-task title..."
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              className="flex-1 text-xs bg-background border border-border rounded-md px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-violet-400 transition-all"
+            />
+            <button
+              type="submit"
+              disabled={isPending || !newTitle.trim()}
+              className="p-1.5 rounded-md bg-violet-500 hover:bg-violet-600 text-white disabled:opacity-50 transition-colors"
+            >
+              {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowInput(false); setError(null); setNewAssigneeId(null); setNewTitle(''); }}
+              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="flex items-center">
+            <AssigneePicker
+              value={newAssigneeId}
+              onChange={(id) => setNewAssigneeId(id)}
+              placeholder="Assign sub-task..."
+              size="xs"
+              className="w-full"
+            />
+          </div>
         </form>
       )}
 

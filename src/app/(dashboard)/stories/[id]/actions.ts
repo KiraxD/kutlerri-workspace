@@ -11,6 +11,7 @@ export async function createTaskForStory({
   status,
   priority,
   teamId,
+  assigneeId,
 }: {
   storyId: string
   title: string
@@ -18,6 +19,7 @@ export async function createTaskForStory({
   status?: string
   priority?: string
   teamId?: string
+  assigneeId?: string
 }) {
   try {
     const { orgId, userId } = await verifyPermission('createStory')
@@ -60,6 +62,7 @@ export async function createTaskForStory({
         story_id: storyId,
         team_id: resolvedTeamId,
         creator_id: userId,
+        assignee_id: assigneeId || null,
         identifier,
       })
       .select()
@@ -78,10 +81,12 @@ export async function createSubTask({
   taskId,
   title,
   storyId,
+  assigneeId,
 }: {
   taskId: string
   title: string
   storyId?: string
+  assigneeId?: string | null
 }) {
   try {
     const { userId } = await verifyPermission('createStory')
@@ -92,7 +97,7 @@ export async function createSubTask({
       .insert({
         task_id: taskId,
         title,
-        assignee_id: null,
+        assignee_id: assigneeId || null,
       })
       .select()
       .single()

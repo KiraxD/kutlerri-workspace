@@ -66,7 +66,7 @@ export default async function TaskDetailPage({
   // Fetch sub-tasks for this task
   const { data: subTasksRaw } = await supabase
     .from('sub_tasks')
-    .select('id, title, status, completed_at')
+    .select('id, title, status, completed_at, assignee:assignee_id(id, full_name, email)')
     .eq('task_id', task.id)
     .order('created_at', { ascending: true })
 

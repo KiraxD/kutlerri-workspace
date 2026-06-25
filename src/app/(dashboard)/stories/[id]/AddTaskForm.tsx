@@ -3,33 +3,46 @@
 import { useState, useTransition } from 'react'
 import { Plus, Loader2, X } from 'lucide-react'
 import { createTaskForStory } from './actions'
+import { AssigneePicker, type AssignableUser } from '@/components/AssigneePicker'
 
 interface AddTaskFormProps {
   storyId: string
 }
 
 const STATUSES = ['Todo', 'In Progress', 'Review', 'Blocked', 'Done']
-const PRIORITIES = ['no_priority', 'low', 'medium', 'high', 'urgent']
 
 export function AddTaskForm({ storyId }: AddTaskFormProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState('Todo')
   const [priority, setPriority] = useState('no_priority')
+  const [assigneeId, setAssigneeId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+
+  function reset() {
+    setTitle('')
+    setStatus('Todo')
+    setPriority('no_priority')
+    setAssigneeId(null)
+    setError(null)
+    setOpen(false)
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
     setError(null)
     startTransition(async () => {
-      const result = await createTaskForStory({ storyId, title: title.trim(), status, priority })
+      const result = await createTaskForStory({
+        storyId,
+        title: title.trim(),
+        status,
+        priority,
+        assigneeId: assigneeId ?? undefined,
+      })
       if (result.success) {
-        setTitle('')
-        setStatus('Todo')
-        setPriority('no_priority')
-        setOpen(false)
+        reset()
       } else {
         setError(result.error ?? 'Failed to create task')
       }
@@ -53,25 +66,27 @@ export function AddTaskForm({ storyId }: AddTaskFormProps) {
       onSubmit={handleSubmit}
       className="rounded-xl border border-emerald-300 bg-emerald-50/30 p-4 space-y-3"
     >
+      {/* Title row */}
       <div className="flex items-center gap-2">
         <input
           autoFocus
           type="text"
-          placeholder="Task title..."
+          placeholder="Task title…"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="flex-1 text-sm bg-white border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 transition-all"
         />
         <button
           type="button"
-          onClick={() => { setOpen(false); setError(null) }}
+          onClick={reset}
           className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Options row */}
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
@@ -93,6 +108,14 @@ export function AddTaskForm({ storyId }: AddTaskFormProps) {
           <option value="high">High</option>
           <option value="urgent">Urgent</option>
         </select>
+
+        {/* Assignee picker — fetches org members automatically */}
+        <AssigneePicker
+          value={assigneeId}
+          onChange={(id) => setAssigneeId(id)}
+          placeholder="Assign to…"
+          size="sm"
+        />
 
         <div className="flex-1" />
 
