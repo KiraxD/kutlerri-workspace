@@ -65,14 +65,17 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
 
         {/* Header — Logo + Workspace name */}
         <div className="px-4 pt-5 pb-4 shrink-0">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-900/40 shrink-0">
-              <LayoutGrid className="w-3.5 h-3.5 text-white" />
+          <div className="flex flex-col gap-1.5 mb-4">
+            <div className="relative h-7 w-28">
+              <Image
+                src="/images/kutlerri-logo.png"
+                alt="Kutlerri"
+                fill
+                className="object-contain object-left filter brightness-0 invert opacity-90"
+                priority
+              />
             </div>
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-white/90 leading-tight truncate">Kutlerri</p>
-              <p className="text-[10px] text-white/30 leading-tight">Workspace</p>
-            </div>
+            <p className="text-[10px] text-white/30 px-0.5 leading-tight font-medium uppercase tracking-wider">Workspace</p>
           </div>
 
           {/* Search pill */}
