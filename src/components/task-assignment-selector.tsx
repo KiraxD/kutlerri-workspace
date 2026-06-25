@@ -114,7 +114,17 @@ export function TaskAssignmentSelector({
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
-      <Select value={selectedId || 'unassigned'} onValueChange={handleAssignmentChange}>
+      <Select
+        value={selectedId || 'unassigned'}
+        onValueChange={handleAssignmentChange}
+        items={[
+          { label: 'Unassigned', value: 'unassigned' },
+          ...assignees.map((user) => ({
+            label: user.full_name || user.email,
+            value: user.id
+          }))
+        ]}
+      >
         <SelectTrigger className="w-full" disabled={assigning || assignees.length === 0}>
           {selectedId ? (
             <SelectValue placeholder="Select assignee" />

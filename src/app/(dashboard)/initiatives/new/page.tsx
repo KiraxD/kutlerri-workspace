@@ -84,7 +84,21 @@ export default async function NewInitiativePage({
 
           <div className="space-y-2">
             <Label htmlFor="status">Initial Status</Label>
-            <Select name="status" defaultValue="Backlog">
+            <Select
+              name="status"
+              defaultValue="Backlog"
+              items={[
+                { label: 'Backlog', value: 'Backlog' },
+                { label: 'Ready', value: 'Ready' },
+                { label: 'Todo', value: 'Todo' },
+                { label: 'In Progress', value: 'In Progress' },
+                { label: 'Review', value: 'Review' },
+                { label: 'Testing', value: 'Testing' },
+                { label: 'Blocked', value: 'Blocked' },
+                { label: 'Done', value: 'Done' },
+                { label: 'Cancelled', value: 'Cancelled' },
+              ]}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>

@@ -95,7 +95,16 @@ export default async function NewEpicPage({
 
           <div className="space-y-2">
             <Label htmlFor="initiative_id">Link to Initiative (Optional)</Label>
-            <Select name="initiative_id">
+            <Select
+              name="initiative_id"
+              items={[
+                { label: 'No initiative', value: '' },
+                ...initiatives.map((initiative: any) => ({
+                  label: initiative.name,
+                  value: initiative.id,
+                })),
+              ]}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select initiative" />
               </SelectTrigger>
@@ -122,7 +131,21 @@ export default async function NewEpicPage({
 
           <div className="space-y-2">
             <Label htmlFor="status">Initial Status</Label>
-            <Select name="status" defaultValue="Backlog">
+            <Select
+              name="status"
+              defaultValue="Backlog"
+              items={[
+                { label: 'Backlog', value: 'Backlog' },
+                { label: 'Ready', value: 'Ready' },
+                { label: 'Todo', value: 'Todo' },
+                { label: 'In Progress', value: 'In Progress' },
+                { label: 'Review', value: 'Review' },
+                { label: 'Testing', value: 'Testing' },
+                { label: 'Blocked', value: 'Blocked' },
+                { label: 'Done', value: 'Done' },
+                { label: 'Cancelled', value: 'Cancelled' },
+              ]}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>

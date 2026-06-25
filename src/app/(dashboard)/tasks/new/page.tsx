@@ -61,7 +61,14 @@ export default async function NewTaskPage() {
             <div className="flex gap-4">
               <div className="flex-grow space-y-2">
                 <Label htmlFor="team_id">Team</Label>
-                <Select name="team_id" defaultValue={teams[0].id}>
+                <Select
+                  name="team_id"
+                  defaultValue={teams[0].id}
+                  items={teams.map((t: any) => ({
+                    label: `${t.name} (${t.identifier})`,
+                    value: t.id,
+                  }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select team" />
                   </SelectTrigger>
@@ -77,7 +84,16 @@ export default async function NewTaskPage() {
 
               <div className="flex-grow space-y-2">
                 <Label htmlFor="project_id">Project (Optional)</Label>
-                <Select name="project_id">
+                <Select
+                  name="project_id"
+                  items={[
+                    { label: 'No project', value: '' },
+                    ...projects.map((p: any) => ({
+                      label: p.name,
+                      value: p.id,
+                    })),
+                  ]}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select project" />
                   </SelectTrigger>
@@ -96,7 +112,21 @@ export default async function NewTaskPage() {
             <div className="flex gap-4">
               <div className="flex-1 space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select name="status" defaultValue="Todo">
+                <Select
+                  name="status"
+                  defaultValue="Todo"
+                  items={[
+                    { label: 'Backlog', value: 'Backlog' },
+                    { label: 'Ready', value: 'Ready' },
+                    { label: 'Todo', value: 'Todo' },
+                    { label: 'In Progress', value: 'In Progress' },
+                    { label: 'Review', value: 'Review' },
+                    { label: 'Testing', value: 'Testing' },
+                    { label: 'Blocked', value: 'Blocked' },
+                    { label: 'Done', value: 'Done' },
+                    { label: 'Cancelled', value: 'Cancelled' },
+                  ]}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -116,7 +146,17 @@ export default async function NewTaskPage() {
 
               <div className="flex-1 space-y-2">
                 <Label htmlFor="priority">Priority</Label>
-                <Select name="priority" defaultValue="no_priority">
+                <Select
+                  name="priority"
+                  defaultValue="no_priority"
+                  items={[
+                    { label: 'No Priority', value: 'no_priority' },
+                    { label: 'Low', value: 'low' },
+                    { label: 'Medium', value: 'medium' },
+                    { label: 'High', value: 'high' },
+                    { label: 'Urgent', value: 'urgent' },
+                  ]}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
@@ -133,7 +173,16 @@ export default async function NewTaskPage() {
 
             <div className="space-y-2">
               <Label htmlFor="assignee_id">Assign To (Optional)</Label>
-              <Select name="assignee_id">
+              <Select
+                name="assignee_id"
+                items={[
+                  { label: 'No assignee', value: '' },
+                  ...(allTeamMembers?.map((member: any) => ({
+                    label: member.profiles?.full_name || member.profiles?.email,
+                    value: member.user_id,
+                  })) || []),
+                ]}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select assignee" />
                 </SelectTrigger>

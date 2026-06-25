@@ -94,7 +94,11 @@ export default function NewProjectPage() {
 
           <div className="space-y-2">
             <Label htmlFor="team">Team *</Label>
-            <Select value={formData.teamId} onValueChange={(value) => { if (value) setFormData(prev => ({ ...prev, teamId: value })) }}>
+            <Select
+              value={formData.teamId}
+              onValueChange={(value) => { if (value) setFormData(prev => ({ ...prev, teamId: value })) }}
+              items={teams.map((t) => ({ label: t.name, value: t.id }))}
+            >
               <SelectTrigger id="team">
                 <SelectValue />
               </SelectTrigger>
@@ -133,7 +137,18 @@ export default function NewProjectPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => { if (value) setFormData((prev) => ({ ...prev, status: value })) }}>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => { if (value) setFormData((prev) => ({ ...prev, status: value })) }}
+                items={[
+                  { label: 'Planned', value: 'planned' },
+                  { label: 'In Progress', value: 'in_progress' },
+                  { label: 'Backlog', value: 'backlog' },
+                  { label: 'Paused', value: 'paused' },
+                  { label: 'Completed', value: 'completed' },
+                  { label: 'Cancelled', value: 'cancelled' },
+                ]}
+              >
                 <SelectTrigger id="status">
                   <SelectValue />
                 </SelectTrigger>
