@@ -9,7 +9,6 @@ import {
   Settings,
   Star,
   Users,
-  Target,
   Route,
   CheckCircle2,
   Home,
@@ -110,35 +109,11 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
             )}
           </div>
 
-          <Divider />
-
           {/* Hierarchy section */}
           <div>
             <SectionLabel>Hierarchy</SectionLabel>
             <div className="space-y-0.5 mt-1">
-              {isNavItemVisible(role, 'initiatives') && (
-                <NavItem
-                  href="/initiatives"
-                  icon={<Compass className="w-4 h-4 text-emerald-400" />}
-                  label="Initiatives"
-                />
-              )}
-              {isNavItemVisible(role, 'epics') && (
-                <NavItem
-                  href="/epics"
-                  icon={<Layers className="w-4 h-4 text-amber-400" />}
-                  label="Epics"
-                  depth={1}
-                />
-              )}
-              {isNavItemVisible(role, 'stories') && (
-                <NavItem
-                  href="/stories"
-                  icon={<BookOpen className="w-4 h-4 text-green-400" />}
-                  label="Stories"
-                  depth={2}
-                />
-              )}
+
               {isNavItemVisible(role, 'my-tasks') && (
                 <NavItem
                   href="/my-tasks"
@@ -164,9 +139,6 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
             <div className="space-y-0.5 mt-1">
               {isNavItemVisible(role, 'projects') && (
                 <NavItem href="/projects" icon={<Briefcase className="w-4 h-4 text-pink-400" />} label="Projects" />
-              )}
-              {isNavItemVisible(role, 'cycles') && (
-                <NavItem href="/cycles" icon={<Target className="w-4 h-4 text-orange-400" />} label="Cycles" />
               )}
               {isNavItemVisible(role, 'roadmap') && (
                 <NavItem href="/roadmap" icon={<Route className="w-4 h-4 text-teal-400" />} label="Roadmap" />

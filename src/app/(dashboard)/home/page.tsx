@@ -2,9 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import {
   CheckCircle2, Bell, Briefcase, Target, TrendingUp,
-  Clock, ArrowRight, Zap, Users, Layers, Compass
+  Clock, ArrowRight, Zap, Users, Layers, Compass, AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import { TaskAcceptanceCard } from '@/components/task-acceptance-card'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -82,6 +83,30 @@ export default async function HomePage() {
     recentActivity = data ?? []
   }
 
+  // Pending task assignments needing acceptance
+  const { data: pendingTasks } = await supabase
+    .from('tasks')
+    .select('id, identifier, title, creator_id, creator:profiles!creator_id(full_name, email)')
+    .eq('assignee_id', user.id)
+    .eq('acceptance_status', 'pending')
+    .order('created_at', { ascending: false })
+
+  // Fetch the corresponding notification id for each pending task
+  const pendingTaskIds = (pendingTasks ?? []).map((t: any) => t.id)
+  let pendingNotifMap: Record<string, string> = {}
+  if (pendingTaskIds.length > 0) {
+    const { data: pendingNotifs } = await supabase
+      .from('notifications')
+      .select('id, task_id')
+      .eq('user_id', user.id)
+      .eq('type', 'task_acceptance_required')
+      .in('task_id', pendingTaskIds)
+      .is('archived_at', null)
+    ;(pendingNotifs ?? []).forEach((n: any) => {
+      if (n.task_id) pendingNotifMap[n.task_id] = n.id
+    })
+  }
+
   const name = profile?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'there'
   const hour = new Date().getUTCHours() + 5
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
@@ -152,11 +177,44 @@ export default async function HomePage() {
           <StatChip icon={<Bell className="w-3.5 h-3.5" />} label="Unread" value={notifCount ?? 0} href="/inbox" color="text-primary" />
           <StatChip icon={<Briefcase className="w-3.5 h-3.5" />} label="Projects" value={recentProjects.length} href="/projects" color="text-blue-600" />
           <StatChip icon={<Users className="w-3.5 h-3.5" />} label="Teams" value={teams.length} href="/teams" color="text-purple-600" />
+          {(pendingTasks?.length ?? 0) > 0 && (
+            <StatChip icon={<AlertCircle className="w-3.5 h-3.5" />} label="Pending Approval" value={pendingTasks!.length} href="/inbox" color="text-amber-500" />
+          )}
         </div>
       </div>
 
       <div className="flex-1 p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+
+          {/* Pending Approvals Section */}
+          {(pendingTasks?.length ?? 0) > 0 && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-amber-500/20">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400" />
+                  <span>Pending Approvals</span>
+                  <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full font-semibold">
+                    {pendingTasks!.length}
+                  </span>
+                </h3>
+                <Link href="/inbox" className="text-xs text-amber-400 hover:underline flex items-center gap-1">
+                  View all in Inbox <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="p-4 space-y-3">
+                {pendingTasks!.map((task: any) => (
+                  <TaskAcceptanceCard
+                    key={task.id}
+                    taskId={task.id}
+                    taskIdentifier={task.identifier}
+                    taskTitle={task.title}
+                    assignedBy={task.creator?.full_name || task.creator?.email || 'Someone'}
+                    notificationId={pendingNotifMap[task.id] ?? ''}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           <SectionCard title="My Tasks" icon={<CheckCircle2 className="w-4 h-4 text-primary" />} href="/my-tasks" linkLabel="View all">
             {!recentTasks || recentTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">

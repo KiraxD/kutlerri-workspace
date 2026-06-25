@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Inbox as InboxIcon, Bell, Archive, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { TaskAcceptanceCard } from '@/components/task-acceptance-card'
 
 export default async function InboxPage() {
   const supabase = await createClient()
@@ -12,7 +13,7 @@ export default async function InboxPage() {
   // Fetch notifications that are not archived
   const { data: notifications, error } = await supabase
     .from('notifications')
-    .select('*, task:tasks(id, identifier, title), actor:profiles!actor_id(id, full_name, email, avatar_url)')
+    .select('*, task:tasks(id, identifier, title, acceptance_status), actor:profiles!actor_id(id, full_name, email, avatar_url)')
     .eq('user_id', user.id)
     .is('archived_at', null)
     .order('created_at', { ascending: false })
@@ -25,8 +26,16 @@ export default async function InboxPage() {
 
   const getNotificationMessage = (notification: any) => {
     const actor = notification.actor?.full_name || notification.actor?.email || 'Someone'
-    
+
     switch (notification.type) {
+      case 'task_acceptance_required':
+        return null // Handled by TaskAcceptanceCard below
+      case 'subtask_acceptance_required':
+        return null // Handled by TaskAcceptanceCard below
+      case 'task_assignment_accepted':
+        return `${actor} accepted your task assignment`
+      case 'task_assignment_declined':
+        return `${actor} declined your task assignment`
       case 'task_assigned':
         return `${actor} assigned you to a task`
       case 'task_updated':
@@ -56,6 +65,9 @@ export default async function InboxPage() {
     }
   }
 
+  const isAcceptanceRequired = (type: string) =>
+    type === 'task_acceptance_required' || type === 'subtask_acceptance_required'
+
   return (
     <div className="flex flex-col bg-background">
       <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
@@ -76,42 +88,64 @@ export default async function InboxPage() {
           </div>
         ) : (
           <div className="divide-y divide-border/50 p-4 space-y-2">
-            {notifList.map((notification: any) => (
-              <div
-                key={notification.id}
-                className="p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/50 cursor-pointer transition-all shadow-sm group"
-              >
-                <div className="flex items-start gap-3 justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm text-foreground font-medium">
-                      {getNotificationMessage(notification)}
-                    </p>
-                    {notification.task && (
-                      <Link href={`/task/${notification.task.identifier}`}>
-                        <p className="text-sm font-medium text-primary mt-1 hover:underline">
-                          {notification.task.identifier} – {notification.task.title}
-                        </p>
-                      </Link>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-2">
+            {notifList.map((notification: any) => {
+              const actor = notification.actor?.full_name || notification.actor?.email || 'Someone'
+
+              if (isAcceptanceRequired(notification.type) && notification.task) {
+                return (
+                  <div key={notification.id} className="py-2">
+                    <TaskAcceptanceCard
+                      taskId={notification.task.id}
+                      taskIdentifier={notification.task.identifier}
+                      taskTitle={notification.task.title}
+                      assignedBy={actor}
+                      notificationId={notification.id}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1.5 px-1">
                       {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Archive">
-                      <Archive className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Delete">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                )
+              }
+
+              const message = getNotificationMessage(notification)
+
+              return (
+                <div
+                  key={notification.id}
+                  className="p-4 rounded-lg border border-border/50 bg-card hover:bg-muted/50 cursor-pointer transition-all shadow-sm group"
+                >
+                  <div className="flex items-start gap-3 justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm text-foreground font-medium">
+                        {message}
+                      </p>
+                      {notification.task && (
+                        <Link href={`/task/${notification.task.identifier}`}>
+                          <p className="text-sm font-medium text-primary mt-1 hover:underline">
+                            {notification.task.identifier} – {notification.task.title}
+                          </p>
+                        </Link>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {new Date(notification.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Archive">
+                        <Archive className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0" title="Delete">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
     </div>
   )
 }
-

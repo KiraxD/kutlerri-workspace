@@ -8,10 +8,12 @@ export async function createInitiativeAction({
   name,
   description,
   status,
+  projectId,
 }: {
   name: string
   description?: string
   status?: string
+  projectId?: string
 }) {
   try {
     const { orgId, userId } = await verifyPermission('createInitiative')
@@ -26,6 +28,7 @@ export async function createInitiativeAction({
         description: description || null,
         status: status || 'Backlog',
         owner_id: userId,
+        project_id: projectId || null,
       })
       .select()
       .single()

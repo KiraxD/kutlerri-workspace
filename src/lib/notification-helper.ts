@@ -19,6 +19,10 @@ export type NotificationType =
   | 'subtask_completed'
   | 'project_created'
   | 'vault_created'
+  | 'task_acceptance_required'
+  | 'subtask_acceptance_required'
+  | 'task_assignment_accepted'
+  | 'task_assignment_declined'
 
 export async function createNotification({
   userId,

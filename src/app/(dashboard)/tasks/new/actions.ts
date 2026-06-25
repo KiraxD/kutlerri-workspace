@@ -43,6 +43,7 @@ export async function createTask(formData: FormData) {
       priority,
       creator_id: userId,
       assignee_id,
+      acceptance_status: assignee_id && assignee_id !== userId ? 'pending' : 'accepted',
     })
     .select('id, identifier, title')
     .single()
@@ -58,12 +59,12 @@ export async function createTask(formData: FormData) {
     throw new Error('Task created but identifier not generated')
   }
 
-  // Create notification for assignee if assigned
+  // Send acceptance-required notification to assignee
   if (assignee_id && assignee_id !== userId) {
     await createNotification({
       userId: assignee_id,
       organizationId: orgId,
-      type: 'task_assigned',
+      type: 'task_acceptance_required',
       actorId: userId,
       taskId: task.id,
     })
@@ -105,19 +106,19 @@ export async function assignTaskAction({
 
     const { error } = await supabase
       .from('tasks')
-      .update({ assignee_id: assigneeId })
+      .update({ assignee_id: assigneeId, acceptance_status: assigneeId !== userId ? 'pending' : 'accepted' })
       .eq('id', taskId)
 
     if (error) {
       return { success: false, error: error.message }
     }
 
-    // Create notification for assignee
+    // Send acceptance-required notification to assignee
     if (assigneeId !== userId) {
       await createNotification({
         userId: assigneeId,
         organizationId: orgId,
-        type: 'task_assigned',
+        type: 'task_acceptance_required',
         actorId: userId,
         taskId,
       })
@@ -220,3 +221,75 @@ export async function deleteTaskAction(id: string) {
   }
 }
 
+
+/**
+ * Assignee accepts or declines a task assignment.
+ * - 'accepted': sets acceptance_status = 'accepted', notifies creator
+ * - 'declined': unassigns the task (assignee_id = null), notifies creator
+ */
+export async function respondToTaskAssignmentAction({
+  taskId,
+  response,
+  notificationId,
+}: {
+  taskId: string
+  response: 'accepted' | 'declined'
+  notificationId: string
+}) {
+  try {
+    const { userId, orgId } = await verifyPermission('updateTask')
+    const supabase = await createClient()
+
+    const { data: task, error: taskError } = await supabase
+      .from('tasks')
+      .select('id, identifier, creator_id, assignee_id')
+      .eq('id', taskId)
+      .single()
+
+    if (taskError || !task) return { success: false, error: 'Task not found' }
+    if (task.assignee_id !== userId) return { success: false, error: 'You are not the assignee of this task' }
+
+    if (response === 'accepted') {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ acceptance_status: 'accepted' })
+        .eq('id', taskId)
+      if (error) return { success: false, error: error.message }
+
+      if (task.creator_id && task.creator_id !== userId) {
+        await createNotification({
+          userId: task.creator_id,
+          organizationId: orgId,
+          type: 'task_assignment_accepted',
+          actorId: userId,
+          taskId,
+        })
+      }
+    } else {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ assignee_id: null, acceptance_status: 'accepted' })
+        .eq('id', taskId)
+      if (error) return { success: false, error: error.message }
+
+      if (task.creator_id && task.creator_id !== userId) {
+        await createNotification({
+          userId: task.creator_id,
+          organizationId: orgId,
+          type: 'task_assignment_declined',
+          actorId: userId,
+          taskId,
+        })
+      }
+    }
+
+    await supabase
+      .from('notifications')
+      .update({ archived_at: new Date().toISOString(), read_at: new Date().toISOString() })
+      .eq('id', notificationId)
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

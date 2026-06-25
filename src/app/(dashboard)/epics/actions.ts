@@ -9,11 +9,13 @@ export async function createEpicAction({
   description,
   status,
   initiativeId,
+  projectId,
 }: {
   name: string
   description?: string
   status?: string
   initiativeId?: string
+  projectId?: string
 }) {
   try {
     const { orgId, userId } = await verifyPermission('createEpic')
@@ -29,6 +31,7 @@ export async function createEpicAction({
         status: status || 'Backlog',
         owner_id: userId,
         initiative_id: initiativeId || null,
+        project_id: projectId || null,
       })
       .select()
       .single()

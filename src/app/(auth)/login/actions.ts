@@ -1,4 +1,4 @@
-﻿'use server'
+'use server'
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -12,17 +12,24 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { data: signInData, error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
     redirect('/login?message=Could not authenticate user')
   }
 
-  const { data: memberships } = await supabase
-    .from('organization_members')
-    .select('organization_id')
-    .limit(1)
+  if (signInData?.user) {
+    const userName = signInData.user.user_metadata?.full_name || signInData.user.email?.split('@')[0] || 'User'
+    const phone = signInData.user.user_metadata?.phone_number ?? null
+    try {
+      await import('@/lib/init-workspace').then(m =>
+        m.initializeUserWorkspace(signInData.user!.id, signInData.user!.email!, userName, phone)
+      )
+    } catch (initErr) {
+      console.error('Failed to auto-initialize workspace during login:', initErr)
+    }
+  }
 
   revalidatePath('/', 'layout')
-  redirect(memberships && memberships.length > 0 ? '/' : '/init')
+  redirect('/')
 }
