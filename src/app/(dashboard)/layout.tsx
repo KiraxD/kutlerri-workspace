@@ -28,8 +28,16 @@ export default async function DashboardLayout({
     .limit(1)
 
   let userRole = null
+  let projects: any[] = []
   if (orgMembers && orgMembers.length > 0) {
     userRole = orgMembers[0].role
+    const orgId = orgMembers[0].organization_id
+    const { data } = await supabase
+      .from('projects')
+      .select('id, name')
+      .eq('organization_id', orgId)
+      .order('name')
+    projects = data ?? []
   }
 
   return (
@@ -40,6 +48,7 @@ export default async function DashboardLayout({
         userName={profile?.full_name ?? null}
         userEmail={profile?.email ?? user.email ?? null}
         role={userRole}
+        projects={projects}
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto relative bg-background">

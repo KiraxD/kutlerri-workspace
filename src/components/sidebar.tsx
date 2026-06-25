@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   Inbox,
   Search,
@@ -29,6 +29,7 @@ interface SidebarProps {
   userName: string | null
   userEmail: string | null
   role?: OrgRole | null
+  projects?: { id: string; name: string }[]
 }
 
 interface NavItemProps {
@@ -50,8 +51,12 @@ function getInitials(name: string | null, email: string | null) {
   return 'U'
 }
 
-export function Sidebar({ userName, userEmail, role }: SidebarProps) {
+export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarProps) {
+  const router = useRouter()
+  const pathname = usePathname()
   const initials = getInitials(userName, userEmail)
+
+  const currentProjectId = pathname.startsWith('/projects/') ? pathname.split('/')[2] : ''
 
   return (
     <aside className="w-[240px] flex-shrink-0 flex flex-col z-20 relative" style={{ height: '100vh' }}>
@@ -87,6 +92,34 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
               <span className="text-[12px] text-white/30 group-hover:text-white/50 transition-colors flex-1">Search...</span>
               <span className="text-[10px] font-mono bg-white/[0.06] px-1.5 py-0.5 rounded text-white/20 shrink-0">⌘K</span>
             </Link>
+          )}
+
+          {/* Project selector dropdown */}
+          {projects && projects.length > 0 && (
+            <div className="mt-3 px-0.5 space-y-1">
+              <label className="text-[10px] text-white/30 font-medium uppercase tracking-wider block">
+                Active Project
+              </label>
+              <select
+                value={currentProjectId}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (val) {
+                    router.push(`/projects/${val}`)
+                  } else {
+                    router.push('/projects')
+                  }
+                }}
+                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-2.5 py-1.5 text-xs text-white/70 hover:bg-white/[0.07] hover:border-white/10 transition-all focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
+              >
+                <option value="" className="bg-[#121212] text-white/50">Select project...</option>
+                {projects.map((proj) => (
+                  <option key={proj.id} value={proj.id} className="bg-[#121212] text-white/80">
+                    {proj.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
 
