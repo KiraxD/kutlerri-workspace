@@ -159,7 +159,7 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
                     <div className="flex-1">
                       <NavItem href="/projects" icon={<Briefcase className="w-4 h-4 text-pink-400" />} label="Projects" />
                     </div>
-                    {projects.length > 0 && (
+                    {(projects.length > 0 || currentProjectId) && (
                       <button
                         onClick={(e) => {
                           e.preventDefault()
@@ -173,46 +173,15 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
                     )}
                   </div>
 
-                  {isProjectsListExpanded && projects.map((proj) => {
-                    const isExpanded = !!expandedProjectIds[proj.id]
-                    const isActiveProject = currentProjectId === proj.id
-                    return (
-                      <div key={proj.id} className="space-y-0.5">
-                        <div className="flex items-center justify-between group/proj hover:bg-white/[0.02] rounded-lg pl-3 pr-1">
-                          <Link
-                            href={`/projects/${proj.id}`}
-                            className={cn(
-                              "flex-1 flex items-center gap-2 py-1.5 text-[12px] transition-all truncate",
-                              isActiveProject ? "text-violet-300 font-medium" : "text-white/50 hover:text-white/80"
-                            )}
-                          >
-                            <LayoutGrid className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                            <span className="truncate">{proj.name}</span>
-                          </Link>
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              setExpandedProjectIds(prev => ({ ...prev, [proj.id]: !prev[proj.id] }))
-                            }}
-                            className="p-1 hover:bg-white/[0.05] rounded text-white/20 hover:text-white/50 shrink-0"
-                          >
-                            <ChevronRight className={cn("w-3 h-3 transition-transform", isExpanded && "rotate-90")} />
-                          </button>
-                        </div>
-
-                        {isExpanded && (
-                          <div className="space-y-0.5">
-                            <NavItem href={`/projects/${proj.id}?tab=initiatives`} icon={<Compass className="w-3.5 h-3.5 text-emerald-400" />} label="Initiatives" depth={1} />
-                            <NavItem href={`/projects/${proj.id}?tab=epics`} icon={<Layers className="w-3.5 h-3.5 text-amber-400" />} label="Epics" depth={1} />
-                            <NavItem href={`/projects/${proj.id}?tab=stories`} icon={<BookOpen className="w-3.5 h-3.5 text-green-400" />} label="Stories" depth={1} />
-                            <NavItem href={`/projects/${proj.id}?tab=tasks`} icon={<CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />} label="Tasks" depth={1} />
-                            <NavItem href={`/projects/${proj.id}?tab=subtasks`} icon={<GitBranch className="w-3.5 h-3.5 text-violet-400 rotate-180" />} label="Sub Tasks" depth={1} />
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                  {isProjectsListExpanded && (currentProjectId || projects[0]?.id) && (
+                    <div className="space-y-0.5">
+                      <NavItem href={`/projects/${currentProjectId || projects[0].id}?tab=initiatives`} icon={<Compass className="w-3.5 h-3.5 text-emerald-400" />} label="Initiatives" depth={1} />
+                      <NavItem href={`/projects/${currentProjectId || projects[0].id}?tab=epics`} icon={<Layers className="w-3.5 h-3.5 text-amber-400" />} label="Epics" depth={1} />
+                      <NavItem href={`/projects/${currentProjectId || projects[0].id}?tab=stories`} icon={<BookOpen className="w-3.5 h-3.5 text-green-400" />} label="Stories" depth={1} />
+                      <NavItem href={`/projects/${currentProjectId || projects[0].id}?tab=tasks`} icon={<CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />} label="Tasks" depth={1} />
+                      <NavItem href={`/projects/${currentProjectId || projects[0].id}?tab=subtasks`} icon={<GitBranch className="w-3.5 h-3.5 text-violet-400 rotate-180" />} label="Sub Tasks" depth={1} />
+                    </div>
+                  )}
                 </div>
               )}
               {isNavItemVisible(role, 'roadmap') && (
