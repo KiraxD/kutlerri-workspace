@@ -138,9 +138,9 @@ export function Sidebar({ userName, userEmail, role }: SidebarProps) {
               />
             )}
 
-            {/* └─── Sub Tasks (also points to my-tasks for now) */}
+            {/* └─── Sub Tasks */}
             <NavItem
-              href="/my-tasks"
+              href="/sub-tasks"
               icon={<GitBranch className="w-3.5 h-3.5 text-violet-400 rotate-180" />}
               label="Sub Tasks"
               depth={4}
