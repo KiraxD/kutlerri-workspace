@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
@@ -56,7 +57,17 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
   const pathname = usePathname()
   const initials = getInitials(userName, userEmail)
 
+  const [isProjectsListExpanded, setIsProjectsListExpanded] = useState(true)
+  const [expandedProjectIds, setExpandedProjectIds] = useState<Record<string, boolean>>({})
+
   const currentProjectId = pathname.startsWith('/projects/') ? pathname.split('/')[2] : ''
+
+  // Auto-expand active project
+  useEffect(() => {
+    if (currentProjectId) {
+      setExpandedProjectIds((prev) => ({ ...prev, [currentProjectId]: true }))
+    }
+  }, [currentProjectId])
 
   return (
     <aside className="w-[240px] flex-shrink-0 flex flex-col z-20 relative" style={{ height: '100vh' }}>
@@ -92,34 +103,6 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
               <span className="text-[12px] text-white/30 group-hover:text-white/50 transition-colors flex-1">Search...</span>
               <span className="text-[10px] font-mono bg-white/[0.06] px-1.5 py-0.5 rounded text-white/20 shrink-0">⌘K</span>
             </Link>
-          )}
-
-          {/* Project selector dropdown */}
-          {projects && projects.length > 0 && (
-            <div className="mt-3 px-0.5 space-y-1">
-              <label className="text-[10px] text-white/30 font-medium uppercase tracking-wider block">
-                Active Project
-              </label>
-              <select
-                value={currentProjectId}
-                onChange={(e) => {
-                  const val = e.target.value
-                  if (val) {
-                    router.push(`/projects/${val}`)
-                  } else {
-                    router.push('/projects')
-                  }
-                }}
-                className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg px-2.5 py-1.5 text-xs text-white/70 hover:bg-white/[0.07] hover:border-white/10 transition-all focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
-              >
-                <option value="" className="bg-[#121212] text-white/50">Select project...</option>
-                {projects.map((proj) => (
-                  <option key={proj.id} value={proj.id} className="bg-[#121212] text-white/80">
-                    {proj.name}
-                  </option>
-                ))}
-              </select>
-            </div>
           )}
         </div>
 
@@ -171,7 +154,66 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
             <SectionLabel>Work</SectionLabel>
             <div className="space-y-0.5 mt-1">
               {isNavItemVisible(role, 'projects') && (
-                <NavItem href="/projects" icon={<Briefcase className="w-4 h-4 text-pink-400" />} label="Projects" />
+                <div className="space-y-0.5">
+                  <div className="flex items-center justify-between group/parent hover:bg-white/[0.02] rounded-lg pr-1">
+                    <div className="flex-1">
+                      <NavItem href="/projects" icon={<Briefcase className="w-4 h-4 text-pink-400" />} label="Projects" />
+                    </div>
+                    {projects.length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setIsProjectsListExpanded(!isProjectsListExpanded)
+                        }}
+                        className="p-1 hover:bg-white/[0.05] rounded transition-colors text-white/30 hover:text-white/60 shrink-0"
+                      >
+                        <ChevronRight className={cn("w-3.5 h-3.5 transition-transform", isProjectsListExpanded && "rotate-90")} />
+                      </button>
+                    )}
+                  </div>
+
+                  {isProjectsListExpanded && projects.map((proj) => {
+                    const isExpanded = !!expandedProjectIds[proj.id]
+                    const isActiveProject = currentProjectId === proj.id
+                    return (
+                      <div key={proj.id} className="space-y-0.5">
+                        <div className="flex items-center justify-between group/proj hover:bg-white/[0.02] rounded-lg pl-3 pr-1">
+                          <Link
+                            href={`/projects/${proj.id}`}
+                            className={cn(
+                              "flex-1 flex items-center gap-2 py-1.5 text-[12px] transition-all truncate",
+                              isActiveProject ? "text-violet-300 font-medium" : "text-white/50 hover:text-white/80"
+                            )}
+                          >
+                            <LayoutGrid className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                            <span className="truncate">{proj.name}</span>
+                          </Link>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              setExpandedProjectIds(prev => ({ ...prev, [proj.id]: !prev[proj.id] }))
+                            }}
+                            className="p-1 hover:bg-white/[0.05] rounded text-white/20 hover:text-white/50 shrink-0"
+                          >
+                            <ChevronRight className={cn("w-3 h-3 transition-transform", isExpanded && "rotate-90")} />
+                          </button>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="space-y-0.5">
+                            <NavItem href={`/projects/${proj.id}?tab=initiatives`} icon={<Compass className="w-3.5 h-3.5 text-emerald-400" />} label="Initiatives" depth={1} />
+                            <NavItem href={`/projects/${proj.id}?tab=epics`} icon={<Layers className="w-3.5 h-3.5 text-amber-400" />} label="Epics" depth={1} />
+                            <NavItem href={`/projects/${proj.id}?tab=stories`} icon={<BookOpen className="w-3.5 h-3.5 text-green-400" />} label="Stories" depth={1} />
+                            <NavItem href={`/projects/${proj.id}?tab=tasks`} icon={<CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />} label="Tasks" depth={1} />
+                            <NavItem href={`/projects/${proj.id}?tab=subtasks`} icon={<GitBranch className="w-3.5 h-3.5 text-violet-400 rotate-180" />} label="Sub Tasks" depth={1} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               )}
               {isNavItemVisible(role, 'roadmap') && (
                 <NavItem href="/roadmap" icon={<Route className="w-4 h-4 text-teal-400" />} label="Roadmap" />

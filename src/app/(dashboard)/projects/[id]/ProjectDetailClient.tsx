@@ -18,6 +18,7 @@ import {
   GitBranch,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { STATUS_DOT, STATUS_STYLES, STATUS_ORDER } from '@/lib/types'
 
 interface ProjectDetailClientProps {
@@ -48,7 +49,15 @@ export default function ProjectDetailClient({
   tasks,
   subTasks,
 }: ProjectDetailClientProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'initiatives' | 'epics' | 'stories' | 'tasks' | 'subtasks'>('overview')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab')
+  const activeTab = (tabParam as any) || 'overview'
+
+  const setActiveTab = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`)
+  }
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Not set'
