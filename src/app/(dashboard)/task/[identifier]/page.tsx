@@ -70,7 +70,10 @@ export default async function TaskDetailPage({
     .eq('task_id', task.id)
     .order('created_at', { ascending: true })
 
-  const subTasks = subTasksRaw ?? []
+  const subTasks = (subTasksRaw as any[])?.map(st => ({
+    ...st,
+    assignee: Array.isArray(st.assignee) ? st.assignee[0] : st.assignee
+  })) ?? []
 
   // Get story_id if the task has one (for cache revalidation)
   const storyId: string | undefined = (task as any).story_id ?? undefined
