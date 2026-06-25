@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
   BookOpen, ArrowLeft, Layers, Compass, Calendar, Target,
-  CheckCircle2, Circle, Clock, AlertTriangle, CheckCheck,
+  CheckCircle2, Circle, Clock, AlertTriangle,
 } from 'lucide-react'
 import { STATUS_DOT, STATUS_STYLES } from '@/lib/types'
+import { AddTaskForm } from './AddTaskForm'
 
 const PRIORITY_LABEL: Record<string, { icon: string; color: string }> = {
   None:   { icon: '—',  color: 'text-gray-400' },
@@ -43,7 +44,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
   // Fetch tasks belonging to this story
   const { data: tasks } = await supabase
     .from('tasks')
-    .select('id, title, status, priority, assignee:profiles!assignee_id(id, full_name, email), progress')
+    .select('id, identifier, title, status, priority, assignee:profiles!assignee_id(id, full_name, email), progress')
     .eq('story_id', id)
     .order('created_at', { ascending: false })
 
@@ -167,29 +168,25 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{totalTasks}</span>
         </div>
 
-        {taskList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-xl text-muted-foreground">
-            <Target className="w-8 h-8 mb-3 opacity-30" />
-            <p className="text-sm font-medium">No tasks yet</p>
-            <p className="text-xs opacity-60 mt-1">Create tasks and link them to this story via story_id</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {taskList.map((task: any) => {
-              const taskProgress = task.progress ?? 0
-              return (
-                <div
-                  key={task.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:border-emerald-200 hover:shadow-sm transition-all group"
-                >
+        <div className="space-y-2">
+          {taskList.map((task: any) => {
+            const taskProgress = task.progress ?? 0
+            return (
+              <Link key={task.id} href={`/task/${task.identifier}`}>
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card hover:border-emerald-300 hover:shadow-sm transition-all group cursor-pointer">
                   {TASK_STATUS_ICON[task.status] ?? <Circle className="w-4 h-4 text-gray-300" />}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{task.title}</p>
-                    {taskProgress > 0 && (
-                      <div className="mt-1 h-1 w-32 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${taskProgress}%` }} />
-                      </div>
-                    )}
+                    <p className="text-sm font-medium truncate group-hover:text-emerald-700 transition-colors">{task.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {task.identifier && (
+                        <span className="text-[10px] font-mono text-muted-foreground">{task.identifier}</span>
+                      )}
+                      {taskProgress > 0 && (
+                        <div className="h-1 w-20 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${taskProgress}%` }} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {task.assignee && (
@@ -197,17 +194,24 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
                         {(task.assignee.full_name || task.assignee.email || '?').charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[task.status] ?? 'bg-gray-100 text-gray-500'}`}
-                    >
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[task.status] ?? 'bg-gray-100 text-gray-500'}`}>
                       {task.status}
                     </span>
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        )}
+              </Link>
+            )
+          })}
+
+          {taskList.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-32 border border-dashed border-border rounded-xl text-muted-foreground">
+              <Target className="w-7 h-7 mb-2 opacity-25" />
+              <p className="text-sm">No tasks yet — add one below</p>
+            </div>
+          )}
+
+          <AddTaskForm storyId={id} />
+        </div>
       </div>
     </div>
   )

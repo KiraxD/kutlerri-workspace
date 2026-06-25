@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { TaskAssignmentDisplay } from '@/components/task-assignment-display'
 import { HierarchyBreadcrumb, HierarchyLevel } from '@/components/hierarchy-breadcrumb'
+import { SubTasksSection } from '@/components/SubTasksSection'
 import {
   AlertCircle,
   ArrowDown,
@@ -41,6 +42,7 @@ export default async function TaskDetailPage({
       team_id,
       project_id,
       cycle_id,
+      story_id,
       creator_id,
       assignee_id,
       created_at,
@@ -60,6 +62,18 @@ export default async function TaskDetailPage({
   if (!task) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">Task not found</div>
   }
+
+  // Fetch sub-tasks for this task
+  const { data: subTasksRaw } = await supabase
+    .from('sub_tasks')
+    .select('id, title, status, completed_at')
+    .eq('task_id', task.id)
+    .order('created_at', { ascending: true })
+
+  const subTasks = subTasksRaw ?? []
+
+  // Get story_id if the task has one (for cache revalidation)
+  const storyId: string | undefined = (task as any).story_id ?? undefined
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -156,10 +170,12 @@ export default async function TaskDetailPage({
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Relations</h3>
-            <div className="text-sm flex flex-col gap-2">
-              <div className="text-muted-foreground">No relations added.</div>
-            </div>
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Sub Tasks</h3>
+            <SubTasksSection
+              taskId={task.id}
+              initialSubTasks={subTasks}
+              storyId={storyId}
+            />
           </div>
         </aside>
       </div>
