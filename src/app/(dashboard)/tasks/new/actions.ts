@@ -318,3 +318,29 @@ export async function respondToTaskAssignmentAction({
     return { success: false, error: error.message }
   }
 }
+
+export async function updateTaskStatusAction({
+  id,
+  status,
+}: {
+  id: string
+  status: string
+}) {
+  try {
+    const { userId } = await verifyPermission('updateTask')
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        status: status as any,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

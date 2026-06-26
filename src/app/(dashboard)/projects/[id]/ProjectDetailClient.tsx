@@ -16,6 +16,7 @@ import {
   ArrowRight,
   TrendingUp,
   GitBranch,
+  Check,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
@@ -342,39 +343,7 @@ export default function ProjectDetailClient({
             ) : (
               <div className="grid gap-3">
                 {tasks.map((task: any) => (
-                  <Link key={task.id} href={`/task/${task.identifier}`}>
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:border-indigo-400/50 hover:shadow-sm transition-all group">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[task.status] ?? 'bg-gray-300'}`} />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono font-bold text-muted-foreground shrink-0">
-                              {task.identifier}
-                            </span>
-                            <p className="text-sm font-semibold truncate group-hover:text-indigo-600 transition-colors">
-                              {task.title}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 shrink-0">
-                        {task.assignee && (
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
-                              {(task.assignee.full_name || task.assignee.email || '?').charAt(0).toUpperCase()}
-                            </div>
-                            <span className="hidden sm:block truncate max-w-[80px]">
-                              {task.assignee.full_name?.split(' ')[0] || 'User'}
-                            </span>
-                          </div>
-                        )}
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[task.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                          {task.status}
-                        </span>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </div>
-                  </Link>
+                  <ProjectTaskListItem key={task.id} task={task} />
                 ))}
               </div>
             )}
@@ -473,6 +442,85 @@ export default function ProjectDetailClient({
 
       {/* Content */}
       <div className="flex-1 p-8">{renderTabContent()}</div>
+    </div>
+  )
+}
+
+function ProjectTaskListItem({ task }: { task: any }) {
+  const router = useRouter()
+  const [status, setStatus] = useState<string>(task.status)
+  const [toggling, setToggling] = useState(false)
+  const isCompleted = status.toLowerCase() === 'done'
+
+  async function handleToggleCompletion(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (toggling) return
+
+    try {
+      setToggling(true)
+      const newStatus = isCompleted ? 'todo' : 'done'
+      setStatus(newStatus)
+
+      const { updateTaskStatusAction } = await import('@/app/(dashboard)/tasks/new/actions')
+      const result = await updateTaskStatusAction({ id: task.id, status: newStatus })
+
+      if (!result.success) {
+        setStatus(task.status)
+      } else {
+        router.refresh()
+      }
+    } catch (err) {
+      console.error(err)
+      setStatus(task.status)
+    } finally {
+      setToggling(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:border-indigo-400/50 hover:shadow-sm transition-all group">
+      <div className="flex items-center gap-3 min-w-0">
+        <button
+          onClick={handleToggleCompletion}
+          disabled={toggling}
+          className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
+            isCompleted 
+              ? 'bg-green-500/20 border-green-500 text-green-500 hover:bg-green-500/30' 
+              : 'border-muted-foreground/30 hover:border-primary text-transparent'
+          }`}
+        >
+          <Check className={`w-3 h-3 ${isCompleted ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-muted-foreground'}`} />
+        </button>
+
+        <Link href={`/task/${task.identifier}`} className="flex items-center gap-2 min-w-0">
+          <span className={`text-xs font-mono font-bold shrink-0 ${isCompleted ? 'line-through text-muted-foreground/50' : 'text-muted-foreground'}`}>
+            {task.identifier}
+          </span>
+          <p className={`text-sm font-semibold truncate group-hover:text-indigo-600 transition-colors ${isCompleted ? 'line-through text-muted-foreground/50' : ''}`}>
+            {task.title}
+          </p>
+        </Link>
+      </div>
+      
+      <div className="flex items-center gap-4 shrink-0">
+        {task.assignee && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+              {(task.assignee.full_name || task.assignee.email || '?').charAt(0).toUpperCase()}
+            </div>
+            <span className="hidden sm:block truncate max-w-[80px]">
+              {task.assignee.full_name?.split(' ')[0] || 'User'}
+            </span>
+          </div>
+        )}
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[status] ?? 'bg-gray-100 text-gray-600'} ${isCompleted ? 'opacity-60' : ''}`}>
+          {status}
+        </span>
+        <Link href={`/task/${task.identifier}`}>
+          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" />
+        </Link>
+      </div>
     </div>
   )
 }

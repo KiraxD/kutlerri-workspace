@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 
 import { EditDeleteControls } from '@/components/EditDeleteControls'
+import { TaskStatusCheckbox } from '@/components/task-status-checkbox'
 
 export default async function TaskDetailPage({
   params,
@@ -174,9 +175,12 @@ export default async function TaskDetailPage({
                 />
               </div>
             )}
-            <h1 className={`text-2xl font-semibold mb-4 text-foreground ${(task.status === 'done' || task.status === 'Done') ? 'line-through text-muted-foreground/60' : ''}`}>
-              {task.title}
-            </h1>
+            <div className="flex items-center gap-3 mb-4">
+              <TaskStatusCheckbox taskId={task.id} initialStatus={task.status} />
+              <h1 className={`text-2xl font-semibold text-foreground ${(task.status === 'done' || task.status === 'Done') ? 'line-through text-muted-foreground/60' : ''}`}>
+                {task.title}
+              </h1>
+            </div>
 
             <div className="prose prose-sm dark:prose-invert max-w-none mb-8 text-foreground/90">
               {task.description ? (

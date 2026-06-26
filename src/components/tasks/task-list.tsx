@@ -1,3 +1,7 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Task } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +17,7 @@ import {
   Eye,
   TestTube,
   XCircle,
+  Check,
 } from 'lucide-react'
 
 export function TaskList({ tasks }: { tasks: Task[] | null }) {
@@ -27,7 +32,7 @@ export function TaskList({ tasks }: { tasks: Task[] | null }) {
   }
 
   return (
-    <div className="flex flex-col border-y border-border divide-y divide-border text-sm">
+    <div className="flex flex-col border-y border-border divide-y divide-border text-sm bg-card rounded-xl overflow-hidden">
       {tasks.map((task) => (
         <TaskListItem key={task.id} task={task} />
       ))}
@@ -36,34 +41,86 @@ export function TaskList({ tasks }: { tasks: Task[] | null }) {
 }
 
 function TaskListItem({ task }: { task: Task }) {
+  const router = useRouter()
+  const [status, setStatus] = useState<string>(task.status)
+  const [toggling, setToggling] = useState(false)
+  const isCompleted = status.toLowerCase() === 'done'
+
+  async function handleToggleCompletion(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (toggling) return
+
+    try {
+      setToggling(true)
+      const newStatus = isCompleted ? 'todo' : 'done'
+      setStatus(newStatus)
+
+      const { updateTaskStatusAction } = await import('@/app/(dashboard)/tasks/new/actions')
+      const result = await updateTaskStatusAction({ id: task.id, status: newStatus })
+
+      if (!result.success) {
+        // Revert status on error
+        setStatus(task.status)
+      } else {
+        router.refresh()
+      }
+    } catch (err) {
+      console.error(err)
+      setStatus(task.status)
+    } finally {
+      setToggling(false)
+    }
+  }
+
   return (
-    <Link
-      href={`/task/${task.identifier}`}
-      className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors group"
-    >
-      <div className="flex items-center gap-2 w-28 shrink-0">
-        <PriorityIcon priority={task.priority} />
-        <span className="text-muted-foreground font-mono text-xs uppercase">{task.identifier}</span>
-      </div>
+    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors group">
+      <button
+        onClick={handleToggleCompletion}
+        disabled={toggling}
+        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+          isCompleted 
+            ? 'bg-green-500/20 border-green-500 text-green-500 hover:bg-green-500/30' 
+            : 'border-muted-foreground/30 hover:border-primary text-transparent'
+        }`}
+      >
+        <Check className={`w-3 h-3 ${isCompleted ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-muted-foreground'}`} />
+      </button>
 
-      <div className="flex items-center gap-2 w-36 shrink-0">
-        <StatusIcon status={task.status} />
-        <span className="text-muted-foreground text-xs">{getStatusLabel(task.status)}</span>
-      </div>
+      <Link
+        href={`/task/${task.identifier}`}
+        className="flex-1 flex items-center gap-3 min-w-0"
+      >
+        <div className="flex items-center gap-2 w-28 shrink-0">
+          <PriorityIcon priority={task.priority} />
+          <span className={`font-mono text-xs uppercase ${isCompleted ? 'line-through text-muted-foreground/50' : 'text-muted-foreground'}`}>
+            {task.identifier}
+          </span>
+        </div>
 
-      <div className="flex-1 min-w-0 font-medium truncate">{task.title}</div>
+        <div className="flex items-center gap-2 w-36 shrink-0">
+          <StatusIcon status={status} />
+          <span className={`text-xs ${isCompleted ? 'line-through text-muted-foreground/50' : 'text-muted-foreground'}`}>
+            {getStatusLabel(status)}
+          </span>
+        </div>
 
-      <div className="flex items-center gap-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-        {task.estimate && (
-          <Badge variant="outline" className="font-mono text-xs">
-            {task.estimate}
-          </Badge>
-        )}
-        <Avatar className="h-6 w-6">
-          <AvatarFallback className="text-[10px] bg-primary/10 text-primary">U</AvatarFallback>
-        </Avatar>
-      </div>
-    </Link>
+        <div className={`flex-1 min-w-0 font-medium truncate ${isCompleted ? 'line-through text-muted-foreground/50' : 'text-foreground'}`}>
+          {task.title}
+        </div>
+
+        <div className="flex items-center gap-4 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          {task.estimate && (
+            <Badge variant="outline" className="font-mono text-xs">
+              {task.estimate}
+            </Badge>
+          )}
+          <Avatar className="h-6 w-6">
+            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">U</AvatarFallback>
+          </Avatar>
+        </div>
+      </Link>
+    </div>
   )
 }
 
