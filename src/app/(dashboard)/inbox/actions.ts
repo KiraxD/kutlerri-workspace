@@ -183,8 +183,18 @@ export async function getInboxUnreadCountAction() {
       .is('archived_at', null)
       .is('read_at', null)
 
-    const total = (msgCount || 0) + (notifCount || 0)
-    return total
+    // Fetch count of unread message notifications to deduct
+    const { count: msgNotifCount } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('type', 'task_comment')
+      .is('task_id', null)
+      .is('archived_at', null)
+      .is('read_at', null)
+
+    const total = (notifCount || 0) + ((msgCount || 0) - (msgNotifCount || 0))
+    return Math.max(0, total)
   } catch (error) {
     console.error('Error fetching unread count:', error)
     return 0

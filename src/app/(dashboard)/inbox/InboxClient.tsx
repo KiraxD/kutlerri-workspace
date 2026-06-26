@@ -143,27 +143,35 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     window.dispatchEvent(new Event('inbox-read-update'))
   }
 
-  async function handleArchiveNotification(id: string) {
+  async function handleArchiveNotification(notification: any) {
     const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
     await supabase
       .from('notifications')
-      .update({ archived_at: new Date().toISOString() })
-      .eq('id', id)
+      .update({ archived_at: new Date().toISOString(), read_at: new Date().toISOString() })
+      .eq('id', notification.id)
     
-    setNotifications(prev => prev.filter(n => n.id !== id))
+    if (notification.type === 'task_comment' && !notification.task_id && notification.actor_id) {
+      await markMessagesAsReadAction(notification.actor_id)
+    }
+
+    setNotifications(prev => prev.filter(n => n.id !== notification.id))
     window.dispatchEvent(new Event('inbox-read-update'))
   }
 
-  async function handleDeleteNotification(id: string) {
+  async function handleDeleteNotification(notification: any) {
     const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
     await supabase
       .from('notifications')
       .delete()
-      .eq('id', id)
+      .eq('id', notification.id)
     
-    setNotifications(prev => prev.filter(n => n.id !== id))
+    if (notification.type === 'task_comment' && !notification.task_id && notification.actor_id) {
+      await markMessagesAsReadAction(notification.actor_id)
+    }
+
+    setNotifications(prev => prev.filter(n => n.id !== notification.id))
     window.dispatchEvent(new Event('inbox-read-update'))
   }
 
@@ -324,7 +332,7 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
                             size="sm" 
                             className="h-6 w-6 p-0" 
                             title="Archive"
-                            onClick={() => handleArchiveNotification(notification.id)}
+                            onClick={() => handleArchiveNotification(notification)}
                           >
                             <Archive className="w-4 h-4" />
                           </Button>
@@ -333,7 +341,7 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
                             size="sm" 
                             className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50" 
                             title="Delete"
-                            onClick={() => handleDeleteNotification(notification.id)}
+                            onClick={() => handleDeleteNotification(notification)}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
