@@ -47,14 +47,15 @@ export function HierarchyBreadcrumb({ items, className = '' }: HierarchyBreadcru
 /**
  * Visual hierarchy indicator showing current level in org structure
  */
-export function HierarchyLevel({ level }: { level: 'org' | 'team' | 'initiative' | 'epic' | 'task' | 'subtask' }) {
+export function HierarchyLevel({ level }: { level: 'org' | 'team' | 'initiative' | 'epic' | 'story' | 'task' | 'subtask' }) {
   const hierarchy = {
     org: { position: 1, label: 'Organization', icon: '🏢' },
     team: { position: 2, label: 'Team', icon: '👥' },
     initiative: { position: 3, label: 'Initiative', icon: '🎯' },
     epic: { position: 4, label: 'Epic', icon: '📚' },
-    task: { position: 5, label: 'Task', icon: '✓' },
-    subtask: { position: 6, label: 'Sub-task', icon: '◦' },
+    story: { position: 5, label: 'Story', icon: '📖' },
+    task: { position: 6, label: 'Task', icon: '✓' },
+    subtask: { position: 7, label: 'Sub-task', icon: '◦' },
   }
 
   const current = hierarchy[level]
@@ -63,7 +64,7 @@ export function HierarchyLevel({ level }: { level: 'org' | 'team' | 'initiative'
     <div className="flex items-center gap-2">
       <span className="text-lg">{current.icon}</span>
       <span className="text-xs font-semibold text-muted-foreground uppercase">
-        {current.label} ({current.position}/6)
+        {current.label} ({current.position}/7)
       </span>
     </div>
   )
@@ -81,8 +82,9 @@ export function HierarchyVisualization() {
         <div className="ml-4">├─ 👥 Teams (Level 2)</div>
         <div className="ml-8">├─ 🎯 Initiatives (Level 3)</div>
         <div className="ml-12">├─ 📚 Epics (Level 4)</div>
-        <div className="ml-16">├─ ✓ Tasks (Level 5)</div>
-        <div className="ml-20">└─ ◦ Sub-Tasks (Level 6)</div>
+        <div className="ml-16">├─ 📖 Stories (Level 5)</div>
+        <div className="ml-20">├─ ✓ Tasks (Level 6)</div>
+        <div className="ml-24">└─ ◦ Sub-Tasks (Level 7)</div>
       </div>
     </div>
   )
