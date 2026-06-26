@@ -25,6 +25,8 @@ export default async function RoadmapPage() {
   const orgIds = orgMembers?.map((om: any) => om.organization_id) ?? []
 
   let initiatives: any[] = []
+  let independentEpics: any[] = []
+
   if (orgIds.length > 0) {
     const { data } = await supabase
       .from('initiatives')
@@ -33,30 +35,36 @@ export default async function RoadmapPage() {
       .order('target_date', { ascending: true, nullsFirst: false })
     initiatives = data ?? []
 
-    // Fetch epics for each initiative
-    if (initiatives.length > 0) {
-      const initIds = initiatives.map((i: any) => i.id)
-      const { data: epicsData } = await supabase
-        .from('epics')
-        .select('id, name, status, priority, progress, target_date, initiative_id, owner:profiles!owner_id(id, full_name, email)')
-        .in('initiative_id', initIds)
-        .order('target_date', { ascending: true, nullsFirst: false })
+    // Fetch all epics for the organization to list unassigned ones as well
+    const { data: epicsData } = await supabase
+      .from('epics')
+      .select('id, name, status, priority, progress, target_date, initiative_id, owner:profiles!owner_id(id, full_name, email)')
+      .in('organization_id', orgIds)
+      .order('target_date', { ascending: true, nullsFirst: false })
 
-      const epicsByInit: Record<string, any[]> = {}
-      ;(epicsData ?? []).forEach((e: any) => {
+    const allEpics = epicsData ?? []
+    const epicsByInit: Record<string, any[]> = {}
+    const unlinked: any[] = []
+
+    allEpics.forEach((e: any) => {
+      if (e.initiative_id) {
         if (!epicsByInit[e.initiative_id]) epicsByInit[e.initiative_id] = []
         epicsByInit[e.initiative_id].push(e)
-      })
+      } else {
+        unlinked.push(e)
+      }
+    })
 
-      initiatives = initiatives.map((init: any) => ({
-        ...init,
-        epics: epicsByInit[init.id] ?? [],
-      }))
-    }
+    initiatives = initiatives.map((init: any) => ({
+      ...init,
+      epics: epicsByInit[init.id] ?? [],
+    }))
+
+    independentEpics = unlinked
   }
 
   const totalInitiatives = initiatives.length
-  const totalEpics = initiatives.reduce((sum: number, i: any) => sum + (i.epics?.length ?? 0), 0)
+  const totalEpics = initiatives.reduce((sum: number, i: any) => sum + (i.epics?.length ?? 0), 0) + independentEpics.length
 
   return (
     <div className="flex flex-col bg-background min-h-screen">
@@ -83,7 +91,7 @@ export default async function RoadmapPage() {
 
       {/* Content */}
       <div className="flex-1 p-8">
-        {initiatives.length === 0 ? (
+        {initiatives.length === 0 && independentEpics.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[420px]">
             <div className="w-20 h-20 rounded-2xl bg-violet-50 flex items-center justify-center mb-6">
               <Route className="w-10 h-10 text-violet-400 opacity-60" />
@@ -226,6 +234,83 @@ export default async function RoadmapPage() {
                 </div>
               )
             })}
+
+            {/* Independent Epics Section */}
+            {independentEpics.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+                <div className="flex items-center gap-4 px-6 py-4 bg-gradient-to-r from-gray-50/60 to-transparent border-b border-border/60">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                    <Layers className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground">
+                      Independent Epics
+                    </p>
+                    <p className="text-xs text-muted-foreground">Epics not linked to any initiative</p>
+                  </div>
+                  <div className="shrink-0 text-xs text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded-full">
+                    {independentEpics.length} epics
+                  </div>
+                </div>
+
+                <div className="divide-y divide-border/40">
+                  {independentEpics.map((epic: any) => {
+                    const epicProgress = epic.progress ?? 0
+                    return (
+                      <Link key={epic.id} href={`/epics/${epic.id}`}>
+                        <div className="flex items-center gap-4 px-6 py-3 pl-14 hover:bg-blue-50/40 transition-all group">
+                          <div className="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center shrink-0">
+                            <Layers className="w-3 h-3 text-blue-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="text-sm font-medium group-hover:text-blue-600 transition-colors truncate">
+                                {epic.name}
+                              </p>
+                              <span
+                                className={`text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0 ${STATUS_STYLES[epic.status] ?? 'bg-gray-100 text-gray-500'}`}
+                              >
+                                {epic.status ?? 'Backlog'}
+                              </span>
+                            </div>
+                            {epicProgress > 0 && (
+                              <div className="flex items-center gap-2">
+                                <div className="w-24 h-1 bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-blue-400 rounded-full"
+                                    style={{ width: `${epicProgress}%` }}
+                                  />
+                                </div>
+                                <span className="text-[10px] text-muted-foreground">{epicProgress}%</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 shrink-0 text-xs text-muted-foreground">
+                            {epic.owner && (
+                              <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold">
+                                {(epic.owner.full_name || epic.owner.email || '?').charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            {epic.target_date ? (
+                              <div className="flex items-center gap-1">
+                                <CalendarDays className="w-3 h-3" />
+                                {new Date(epic.target_date).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                })}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground/40">No date</span>
+                            )}
+                            <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all" />
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
