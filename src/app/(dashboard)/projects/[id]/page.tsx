@@ -103,6 +103,8 @@ export default async function ProjectDetailPage({
     projectSubTasks = subTaskData ?? []
   }
 
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <ProjectDetailClient
       project={project}
@@ -112,6 +114,7 @@ export default async function ProjectDetailPage({
       stories={stories}
       tasks={tasks ?? []}
       subTasks={projectSubTasks}
+      currentUserId={user?.id}
     />
   )
 }

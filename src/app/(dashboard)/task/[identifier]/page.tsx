@@ -73,7 +73,7 @@ export default async function TaskDetailPage({
   // Fetch current user and pending notification details for acceptance display
   const { data: { user } } = await supabase.auth.getUser()
   const assigneeIds: string[] = (task as any).assignee_ids || (task.assignee_id ? [task.assignee_id] : [])
-  const isAssignee = user && assigneeIds.includes(user.id)
+  const isAssignee = !!(user && assigneeIds.includes(user.id))
   const isPending = (task as any).acceptance_status === 'pending'
 
   let notificationId = ""
@@ -176,7 +176,7 @@ export default async function TaskDetailPage({
               </div>
             )}
             <div className="flex items-center gap-3 mb-4">
-              <TaskStatusCheckbox taskId={task.id} initialStatus={task.status} />
+              <TaskStatusCheckbox taskId={task.id} initialStatus={task.status} isAssignee={isAssignee} />
               <h1 className={`text-2xl font-semibold text-foreground ${(task.status === 'done' || task.status === 'Done') ? 'line-through text-muted-foreground/60' : ''}`}>
                 {task.title}
               </h1>

@@ -30,6 +30,7 @@ interface ProjectDetailClientProps {
   stories: any[]
   tasks: any[]
   subTasks: any[]
+  currentUserId?: string
 }
 
 const TAB_ICONS: Record<string, React.ReactNode> = {
@@ -49,6 +50,7 @@ export default function ProjectDetailClient({
   stories,
   tasks,
   subTasks,
+  currentUserId,
 }: ProjectDetailClientProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -343,7 +345,7 @@ export default function ProjectDetailClient({
             ) : (
               <div className="grid gap-3">
                 {tasks.map((task: any) => (
-                  <ProjectTaskListItem key={task.id} task={task} />
+                  <ProjectTaskListItem key={task.id} task={task} currentUserId={currentUserId} />
                 ))}
               </div>
             )}
@@ -446,16 +448,19 @@ export default function ProjectDetailClient({
   )
 }
 
-function ProjectTaskListItem({ task }: { task: any }) {
+function ProjectTaskListItem({ task, currentUserId }: { task: any; currentUserId?: string }) {
   const router = useRouter()
   const [status, setStatus] = useState<string>(task.status)
   const [toggling, setToggling] = useState(false)
   const isCompleted = status.toLowerCase() === 'done'
 
+  const assigneeIds = task.assignee_ids || (task.assignee_id ? [task.assignee_id] : [])
+  const isAssignee = currentUserId && assigneeIds.includes(currentUserId)
+
   async function handleToggleCompletion(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    if (toggling) return
+    if (toggling || !isAssignee) return
 
     try {
       setToggling(true)
@@ -483,12 +488,13 @@ function ProjectTaskListItem({ task }: { task: any }) {
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={handleToggleCompletion}
-          disabled={toggling}
+          disabled={toggling || !isAssignee}
           className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 ${
             isCompleted 
               ? 'bg-green-500/20 border-green-500 text-green-500 hover:bg-green-500/30' 
               : 'border-muted-foreground/30 hover:border-primary text-transparent'
-          }`}
+          } ${!isAssignee ? 'cursor-not-allowed opacity-50' : ''}`}
+          title={!isAssignee ? 'Only assignees can complete this task' : (isCompleted ? 'Mark as incomplete' : 'Mark as complete')}
         >
           <Check className={`w-3 h-3 ${isCompleted ? 'opacity-100' : 'opacity-0 group-hover:opacity-40 group-hover:text-muted-foreground'}`} />
         </button>
