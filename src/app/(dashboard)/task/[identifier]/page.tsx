@@ -23,6 +23,7 @@ import {
 
 import { EditDeleteControls } from '@/components/EditDeleteControls'
 import { TaskStatusCheckbox } from '@/components/task-status-checkbox'
+import { TaskDetailInline } from '@/components/tasks/TaskDetailInline'
 
 export default async function TaskDetailPage({
   params,
@@ -175,19 +176,13 @@ export default async function TaskDetailPage({
                 />
               </div>
             )}
-            <div className="flex items-center gap-3 mb-4">
-              <TaskStatusCheckbox taskId={task.id} initialStatus={task.status} isAssignee={isAssignee} />
-              <h1 className={`text-2xl font-semibold text-foreground ${(task.status === 'done' || task.status === 'Done') ? 'line-through text-muted-foreground/60' : ''}`}>
-                {task.title}
-              </h1>
-            </div>
-
-            <div className="prose prose-sm dark:prose-invert max-w-none mb-8 text-foreground/90">
-              {task.description ? (
-                <p className="whitespace-pre-wrap">{task.description}</p>
-              ) : (
-                <p className="text-muted-foreground italic">No description provided.</p>
-              )}
+            <div className="flex items-start gap-4 mb-6">
+              <div className="mt-1.5 shrink-0">
+                <TaskStatusCheckbox taskId={task.id} initialStatus={task.status} isAssignee={isAssignee} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <TaskDetailInline task={task as any} />
+              </div>
             </div>
 
             <div className="border-t border-border pt-6">

@@ -18,21 +18,69 @@ export function CommandPalette() {
   const router = useRouter()
 
   React.useEffect(() => {
+    let lastKey = ''
+    let lastKeyTime = 0
+
     const down = (e: KeyboardEvent) => {
-      // Toggle palette: Ctrl+K or Cmd+K, or Q (when not in input)
-      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === 'q' && e.target === document.body)) {
+      const activeEl = document.activeElement
+      const isInput = activeEl && (
+        activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
+        activeEl.getAttribute('contenteditable') === 'true'
+      )
+
+      if (isInput) return
+
+      const now = Date.now()
+
+      // Handle sequence: 'g' then key
+      if (lastKey === 'g' && now - lastKeyTime < 500) {
+        if (e.key === 'i') {
+          e.preventDefault()
+          router.push('/inbox')
+          lastKey = ''
+          return
+        }
+        if (e.key === 'm') {
+          e.preventDefault()
+          router.push('/my-tasks')
+          lastKey = ''
+          return
+        }
+        if (e.key === 'h') {
+          e.preventDefault()
+          router.push('/home')
+          lastKey = ''
+          return
+        }
+        if (e.key === 'p') {
+          e.preventDefault()
+          router.push('/projects')
+          lastKey = ''
+          return
+        }
+      }
+
+      if (e.key === 'g' && !e.metaKey && !e.ctrlKey) {
+        lastKey = 'g'
+        lastKeyTime = now
+        return
+      }
+
+      // Toggle palette: Ctrl+K or Cmd+K, or Q
+      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === 'q' && !e.metaKey && !e.ctrlKey)) {
         e.preventDefault()
         setOpen((open) => !open)
       }
       
       // Create task shortcut: C
-      if (e.key === 'c' && e.target === document.body && !e.metaKey && !e.ctrlKey) {
+      if (e.key === 'c' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault()
         router.push('/tasks/new')
       }
 
       // Assign, Edit, Move
-      if (['a', 'e', 'm'].includes(e.key) && e.target === document.body && !e.metaKey && !e.ctrlKey) {
+      if (['a', 'e', 'm'].includes(e.key) && !e.metaKey && !e.ctrlKey) {
         e.preventDefault()
         console.log(`Shortcut ${e.key.toUpperCase()} pressed. (Requires task selection context)`)
       }
