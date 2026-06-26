@@ -58,6 +58,26 @@ export async function sendMessageAction(receiverId: string, content: string) {
       .single()
 
     if (error) return { success: false, error: error.message }
+
+    // Create a direct message notification for the receiver
+    // Fetch user's organization first to satisfy organization_id constraint
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .single()
+
+    if (member) {
+      const { createNotification } = await import('@/lib/notification-helper')
+      await createNotification({
+        userId: receiverId,
+        organizationId: member.organization_id,
+        type: 'task_comment', // Passes DB constraint after migration, type checks correctly
+        actorId: user.id,
+      })
+    }
+
     return { success: true, message }
   } catch (error: any) {
     return { success: false, error: error.message }
@@ -72,19 +92,25 @@ export async function getConversationsAction() {
   // Fetch recent messages involving the user
   const { data: messages, error } = await supabase
     .from('messages')
-    .select('sender_id, receiver_id, created_at')
+    .select('sender_id, receiver_id, read_at')
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order('created_at', { ascending: false })
 
   if (error || !messages) return []
 
-  // Find unique other user IDs
-  const otherUserIds = Array.from(
-    new Set(
-      messages.map(m => (m.sender_id === user.id ? m.receiver_id : m.sender_id))
-    )
-  )
+  // Find unique other user IDs and compute unread counts
+  const unreadCounts: Record<string, number> = {}
+  const otherUserIdsSet = new Set<string>()
 
+  messages.forEach(m => {
+    const otherId = m.sender_id === user.id ? m.receiver_id : m.sender_id
+    otherUserIdsSet.add(otherId)
+    if (m.receiver_id === user.id && !m.read_at) {
+      unreadCounts[otherId] = (unreadCounts[otherId] || 0) + 1
+    }
+  })
+
+  const otherUserIds = Array.from(otherUserIdsSet)
   if (otherUserIds.length === 0) return []
 
   const { data: profiles } = await supabase
@@ -92,5 +118,46 @@ export async function getConversationsAction() {
     .select('id, email, full_name')
     .in('id', otherUserIds)
 
-  return profiles || []
+  if (!profiles) return []
+
+  // Map profiles with unreadCount
+  return profiles.map(p => ({
+    ...p,
+    unreadCount: unreadCounts[p.id] || 0
+  }))
+}
+
+export async function markMessagesAsReadAction(senderId: string) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Unauthorized' }
+
+    // Mark messages as read
+    const { error: msgError } = await supabase
+      .from('messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('sender_id', senderId)
+      .eq('receiver_id', user.id)
+      .is('read_at', null)
+
+    if (msgError) return { success: false, error: msgError.message }
+
+    // Archive direct message notifications from this sender
+    await supabase
+      .from('notifications')
+      .update({ 
+        read_at: new Date().toISOString(), 
+        archived_at: new Date().toISOString() 
+      })
+      .eq('user_id', user.id)
+      .eq('actor_id', senderId)
+      .eq('type', 'task_comment')
+      .is('task_id', null)
+      .is('archived_at', null)
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
 }

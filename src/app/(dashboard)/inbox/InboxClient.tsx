@@ -10,7 +10,8 @@ import {
   getEmployeesAction, 
   getMessagesAction, 
   sendMessageAction,
-  getConversationsAction 
+  getConversationsAction,
+  markMessagesAsReadAction
 } from './actions'
 
 interface InboxClientProps {
@@ -34,10 +35,13 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    if (activeTab === 'chat') {
-      loadConversations()
-      loadEmployees()
-    }
+    if (activeTab !== 'chat') return
+
+    loadConversations()
+    loadEmployees()
+    
+    const interval = setInterval(loadConversations, 5000)
+    return () => clearInterval(interval)
   }, [activeTab])
 
   // Poll messages every 3 seconds when a chat is open
@@ -80,6 +84,12 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     try {
       const data = await getMessagesAction(selectedUser.id)
       setMessages(data)
+      // Check if there are any unread messages from this user to mark as read
+      const hasUnread = data.some((m: any) => m.receiver_id === currentUserId && !m.read_at)
+      if (hasUnread) {
+        await markMessagesAsReadAction(selectedUser.id)
+        loadConversations()
+      }
     } catch (err) {
       console.error(err)
     }
@@ -110,13 +120,15 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     }
   }
 
-  const startChatWithUser = (user: any) => {
+  const startChatWithUser = async (user: any) => {
     setSelectedUser(user)
     setMessages([])
     // Add to conversations locally if not already in list
     if (!conversations.some(c => c.id === user.id)) {
       setConversations(prev => [user, ...prev])
     }
+    await markMessagesAsReadAction(user.id)
+    loadConversations()
   }
 
   async function handleArchiveNotification(id: string) {
@@ -164,6 +176,9 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
       case 'team_member_added':
         return `${actor} added you to a team`
       case 'task_comment':
+        if (!notification.task_id) {
+          return `${actor} sent you a direct message`
+        }
         return `${actor} commented on a task`
       case 'task_mentioned':
         return `${actor} mentioned you in a task`
@@ -380,7 +395,7 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
                         return (
                           <button
                             key={conv.id}
-                            onClick={() => setSelectedUser(conv)}
+                            onClick={() => startChatWithUser(conv)}
                             className={`w-full flex items-center gap-2 p-2 rounded-lg text-left text-xs transition-all ${
                               isSelected 
                                 ? 'bg-primary/10 font-medium border border-primary/20' 
@@ -394,9 +409,14 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
                                   : conv.email[0].toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold truncate text-foreground">{conv.full_name || conv.email}</p>
-                              <p className="text-[10px] text-muted-foreground truncate">{conv.email}</p>
+                            <div className="min-w-0 flex-1 flex items-center justify-between gap-1">
+                              <div className="min-w-0">
+                                <p className="font-semibold truncate text-foreground">{conv.full_name || conv.email}</p>
+                                <p className="text-[10px] text-muted-foreground truncate">{conv.email}</p>
+                              </div>
+                              {conv.unreadCount > 0 && (
+                                <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" title={`${conv.unreadCount} unread`} />
+                              )}
                             </div>
                           </button>
                         )
