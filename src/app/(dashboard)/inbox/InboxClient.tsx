@@ -45,15 +45,13 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     }
   }, [activeTab])
 
-  // Load conversations and set up realtime subscription for conversations
+  // Load conversations, employees, and set up realtime subscriptions
   useEffect(() => {
-    if (activeTab !== 'chat') return
-
     loadConversations()
     loadEmployees()
     
     const supabase = createClient()
-    const channel = supabase
+    const msgChannel = supabase
       .channel('inbox-conversations-realtime')
       .on(
         'postgres_changes',
@@ -64,10 +62,31 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
       )
       .subscribe()
 
+    const notifChannel = supabase
+      .channel('inbox-notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${currentUserId}` },
+        async () => {
+          const { data: updatedNotifs } = await supabase
+            .from('notifications')
+            .select('*, task:tasks(id, identifier, title, acceptance_status), actor:profiles!actor_id(id, full_name, email, avatar_url)')
+            .eq('user_id', currentUserId)
+            .is('archived_at', null)
+            .order('created_at', { ascending: false })
+          
+          if (updatedNotifs) {
+            setNotifications(updatedNotifs)
+          }
+        }
+      )
+      .subscribe()
+
     return () => {
-      channel.unsubscribe()
+      msgChannel.unsubscribe()
+      notifChannel.unsubscribe()
     }
-  }, [activeTab])
+  }, [currentUserId])
 
   // Load messages and set up realtime subscription for the open chat
   useEffect(() => {
@@ -272,6 +291,8 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     return name.includes(query) || email.includes(query)
   })
 
+  const totalUnreadMessages = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header and Tabs */}
@@ -309,6 +330,11 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
           >
             <MessageSquare className="w-4 h-4" />
             <span>Employee Chat</span>
+            {totalUnreadMessages > 0 && (
+              <span className="text-xs px-1.5 py-0.5 bg-red-500 text-white rounded-full font-bold">
+                {totalUnreadMessages}
+              </span>
+            )}
           </button>
         </div>
       </div>
