@@ -17,6 +17,9 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: 'Kutlerri Workspace',
   description: 'Manage tasks, cycles, and teams with efficiency.',
+  icons: {
+    icon: '/favicon.jpg',
+  },
 }
 
 export default function RootLayout({
