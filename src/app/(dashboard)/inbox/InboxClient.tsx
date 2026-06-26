@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Inbox as InboxIcon, Bell, Send, User, MessageSquare, Loader2, ArrowLeft, Archive, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -44,24 +45,69 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     }
   }, [activeTab])
 
+  // Load conversations and set up realtime subscription for conversations
   useEffect(() => {
     if (activeTab !== 'chat') return
 
     loadConversations()
     loadEmployees()
     
-    const interval = setInterval(loadConversations, 5000)
-    return () => clearInterval(interval)
+    const supabase = createClient()
+    const channel = supabase
+      .channel('inbox-conversations-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
+        () => {
+          loadConversations()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
   }, [activeTab])
 
-  // Poll messages every 3 seconds when a chat is open
+  // Load messages and set up realtime subscription for the open chat
   useEffect(() => {
     if (!selectedUser) return
 
     loadMessages()
-    const interval = setInterval(loadMessages, 3000)
-    return () => clearInterval(interval)
-  }, [selectedUser])
+    
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`inbox-messages-${selectedUser.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload) => {
+          const newMsg = payload.new
+          // If the message belongs to this conversation, append it
+          if (
+            (newMsg.sender_id === currentUserId && newMsg.receiver_id === selectedUser.id) ||
+            (newMsg.sender_id === selectedUser.id && newMsg.receiver_id === currentUserId)
+          ) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === newMsg.id)) return prev
+              return [...prev, newMsg]
+            })
+            // If we are receiving, mark it read immediately
+            if (newMsg.receiver_id === currentUserId) {
+              markMessagesAsReadAction(selectedUser.id).then(() => {
+                loadConversations()
+                window.dispatchEvent(new Event('inbox-read-update'))
+              })
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [selectedUser, currentUserId])
 
   // Scroll to bottom on new messages
   useEffect(() => {

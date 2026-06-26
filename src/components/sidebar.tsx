@@ -26,6 +26,7 @@ import {
 import { cn } from '@/lib/utils'
 import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
 import { getInboxUnreadCountAction } from '@/app/(dashboard)/inbox/actions'
+import { createClient } from '@/lib/supabase/client'
 
 interface SidebarProps {
   userName: string | null
@@ -83,11 +84,34 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
     
     fetchUnreadCount()
     window.addEventListener('inbox-read-update', fetchUnreadCount)
-    const interval = setInterval(fetchUnreadCount, 5000)
+    
+    const supabase = createClient()
+    const msgChannel = supabase
+      .channel('sidebar-messages-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
+        () => {
+          fetchUnreadCount()
+        }
+      )
+      .subscribe()
+
+    const notifChannel = supabase
+      .channel('sidebar-notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications' },
+        () => {
+          fetchUnreadCount()
+        }
+      )
+      .subscribe()
     
     return () => {
       window.removeEventListener('inbox-read-update', fetchUnreadCount)
-      clearInterval(interval)
+      msgChannel.unsubscribe()
+      notifChannel.unsubscribe()
     }
   }, [])
 
