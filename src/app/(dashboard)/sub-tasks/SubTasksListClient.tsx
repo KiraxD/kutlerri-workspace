@@ -108,7 +108,6 @@ export function SubTasksListClient({ initialSubTasks }: { initialSubTasks: SubTa
               {st.priority && st.priority !== 'None' && (
                 <div className="flex items-center gap-1 text-xs">
                   <PriorityIcon priority={st.priority} />
-                  <span className="text-[11px] text-muted-foreground capitalize">{st.priority}</span>
                 </div>
               )}
 
@@ -132,16 +131,47 @@ export function SubTasksListClient({ initialSubTasks }: { initialSubTasks: SubTa
 }
 
 function PriorityIcon({ priority }: { priority: string }) {
-  switch (priority) {
-    case 'Urgent':
-      return <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
-    case 'High':
-      return <ArrowUp className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-    case 'Medium':
-      return <ArrowRight className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
-    case 'Low':
-      return <ArrowDown className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-    default:
-      return null
+  const getStyles = () => {
+    switch (priority) {
+      case 'Urgent':
+        return {
+          container: 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_8px_rgba(239,68,68,0.2)] hover:shadow-[0_0_12px_rgba(239,68,68,0.35)]',
+          label: 'Urgent',
+          icon: <AlertCircle className="w-3 h-3 shrink-0" />
+        }
+      case 'High':
+        return {
+          container: 'bg-orange-500/10 border-orange-500/30 text-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.2)] hover:shadow-[0_0_12px_rgba(249,115,22,0.35)]',
+          label: 'High',
+          icon: <ArrowUp className="w-3 h-3 shrink-0" />
+        }
+      case 'Medium':
+        return {
+          container: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.2)] hover:shadow-[0_0_12px_rgba(234,179,8,0.35)]',
+          label: 'Med',
+          icon: <ArrowRight className="w-3 h-3 shrink-0" />
+        }
+      case 'Low':
+        return {
+          container: 'bg-blue-500/10 border-blue-500/30 text-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.2)] hover:shadow-[0_0_12px_rgba(59,130,246,0.35)]',
+          label: 'Low',
+          icon: <ArrowDown className="w-3 h-3 shrink-0" />
+        }
+      default:
+        return {
+          container: 'bg-muted/10 border-border/30 text-muted-foreground/60',
+          label: 'None',
+          icon: <span className="text-[9px] font-bold h-3 w-3 flex items-center justify-center">-</span>
+        }
+    }
   }
+
+  const { container, label, icon } = getStyles()
+
+  return (
+    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-semibold tracking-wide uppercase backdrop-blur-xs select-none transition-all duration-300 ${container}`}>
+      {icon}
+      <span>{label}</span>
+    </div>
+  )
 }

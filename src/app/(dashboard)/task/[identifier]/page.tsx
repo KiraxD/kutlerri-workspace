@@ -277,18 +277,49 @@ function getStatusLabel(status: string) {
 }
 
 function PriorityIcon({ priority }: { priority: string }) {
-  switch (priority) {
-    case 'urgent':
-      return <AlertCircle className="w-4 h-4 text-red-500" />
-    case 'high':
-      return <ArrowUp className="w-4 h-4 text-orange-500" />
-    case 'medium':
-      return <ArrowRight className="w-4 h-4 text-yellow-500" />
-    case 'low':
-      return <ArrowDown className="w-4 h-4 text-blue-500" />
-    default:
-      return <div className="w-4 h-4 flex items-center justify-center text-muted-foreground/50">-</div>
+  const getStyles = () => {
+    switch (priority) {
+      case 'urgent':
+        return {
+          container: 'bg-red-500/10 border-red-500/30 text-red-500 shadow-[0_0_8px_rgba(239,68,68,0.2)] hover:shadow-[0_0_12px_rgba(239,68,68,0.35)]',
+          label: 'Urgent',
+          icon: <AlertCircle className="w-3 h-3 shrink-0" />
+        }
+      case 'high':
+        return {
+          container: 'bg-orange-500/10 border-orange-500/30 text-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.2)] hover:shadow-[0_0_12px_rgba(249,115,22,0.35)]',
+          label: 'High',
+          icon: <ArrowUp className="w-3 h-3 shrink-0" />
+        }
+      case 'medium':
+        return {
+          container: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.2)] hover:shadow-[0_0_12px_rgba(234,179,8,0.35)]',
+          label: 'Med',
+          icon: <ArrowRight className="w-3 h-3 shrink-0" />
+        }
+      case 'low':
+        return {
+          container: 'bg-blue-500/10 border-blue-500/30 text-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.2)] hover:shadow-[0_0_12px_rgba(59,130,246,0.35)]',
+          label: 'Low',
+          icon: <ArrowDown className="w-3 h-3 shrink-0" />
+        }
+      default:
+        return {
+          container: 'bg-muted/10 border-border/30 text-muted-foreground/60',
+          label: 'None',
+          icon: <span className="text-[9px] font-bold h-3 w-3 flex items-center justify-center">-</span>
+        }
+    }
   }
+
+  const { container, label, icon } = getStyles()
+
+  return (
+    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-semibold tracking-wide uppercase backdrop-blur-xs select-none transition-all duration-300 ${container}`}>
+      {icon}
+      <span>{label}</span>
+    </div>
+  )
 }
 
 function StatusIcon({ status }: { status: string }) {
