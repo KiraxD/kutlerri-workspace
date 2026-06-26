@@ -53,7 +53,7 @@ function TaskListItem({ task }: { task: Task }) {
 
     try {
       setToggling(true)
-      const newStatus = isCompleted ? 'todo' : 'done'
+      const newStatus = isCompleted ? 'Todo' : 'Done'
       setStatus(newStatus)
 
       const { updateTaskStatusAction } = await import('@/app/(dashboard)/tasks/new/actions')
