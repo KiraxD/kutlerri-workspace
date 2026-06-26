@@ -264,6 +264,31 @@ export async function respondToTaskAssignmentAction({
     if (taskError || !task) return { success: false, error: 'Task not found' }
     if (task.assignee_id !== userId) return { success: false, error: 'You are not the assignee of this task' }
 
+    let assignerId = task.creator_id
+    if (notificationId) {
+      const { data: notif } = await supabase
+        .from('notifications')
+        .select('actor_id')
+        .eq('id', notificationId)
+        .maybeSingle()
+      if (notif && notif.actor_id) {
+        assignerId = notif.actor_id
+      }
+    } else {
+      const { data: notifs } = await supabase
+        .from('notifications')
+        .select('actor_id')
+        .eq('task_id', taskId)
+        .eq('user_id', userId)
+        .eq('type', 'task_acceptance_required')
+        .is('archived_at', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+      if (notifs && notifs.length > 0 && notifs[0].actor_id) {
+        assignerId = notifs[0].actor_id
+      }
+    }
+
     if (response === 'accepted') {
       const { error } = await supabase
         .from('tasks')
@@ -271,9 +296,9 @@ export async function respondToTaskAssignmentAction({
         .eq('id', taskId)
       if (error) return { success: false, error: error.message }
 
-      if (task.creator_id && task.creator_id !== userId) {
+      if (assignerId && assignerId !== userId) {
         await createNotification({
-          userId: task.creator_id,
+          userId: assignerId,
           organizationId: orgId,
           type: 'task_assignment_accepted',
           actorId: userId,
@@ -287,9 +312,9 @@ export async function respondToTaskAssignmentAction({
         .eq('id', taskId)
       if (error) return { success: false, error: error.message }
 
-      if (task.creator_id && task.creator_id !== userId) {
+      if (assignerId && assignerId !== userId) {
         await createNotification({
-          userId: task.creator_id,
+          userId: assignerId,
           organizationId: orgId,
           type: 'task_assignment_declined',
           actorId: userId,

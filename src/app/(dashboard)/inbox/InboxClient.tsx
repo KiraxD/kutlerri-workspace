@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Inbox as InboxIcon, Bell, Send, User, MessageSquare, Loader2, ArrowLeft } from 'lucide-react'
+import { Inbox as InboxIcon, Bell, Send, User, MessageSquare, Loader2, ArrowLeft, Archive, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { TaskAcceptanceCard } from '@/components/task-acceptance-card'
@@ -117,6 +117,28 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     if (!conversations.some(c => c.id === user.id)) {
       setConversations(prev => [user, ...prev])
     }
+  }
+
+  async function handleArchiveNotification(id: string) {
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    await supabase
+      .from('notifications')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', id)
+    
+    setNotifications(prev => prev.filter(n => n.id !== id))
+  }
+
+  async function handleDeleteNotification(id: string) {
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', id)
+    
+    setNotifications(prev => prev.filter(n => n.id !== id))
   }
 
   const getNotificationMessage = (notification: any) => {
@@ -266,6 +288,26 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
                           <p className="text-[10px] text-muted-foreground mt-2">
                             {new Date(notification.created_at).toLocaleString()}
                           </p>
+                        </div>
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0" 
+                            title="Archive"
+                            onClick={() => handleArchiveNotification(notification.id)}
+                          >
+                            <Archive className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50" 
+                            title="Delete"
+                            onClick={() => handleDeleteNotification(notification.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
