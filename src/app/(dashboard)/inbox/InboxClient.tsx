@@ -89,6 +89,7 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
       if (hasUnread) {
         await markMessagesAsReadAction(selectedUser.id)
         loadConversations()
+        window.dispatchEvent(new Event('inbox-read-update'))
       }
     } catch (err) {
       console.error(err)
@@ -129,6 +130,7 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
     }
     await markMessagesAsReadAction(user.id)
     loadConversations()
+    window.dispatchEvent(new Event('inbox-read-update'))
   }
 
   async function handleArchiveNotification(id: string) {
@@ -140,6 +142,7 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
       .eq('id', id)
     
     setNotifications(prev => prev.filter(n => n.id !== id))
+    window.dispatchEvent(new Event('inbox-read-update'))
   }
 
   async function handleDeleteNotification(id: string) {
@@ -151,6 +154,7 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
       .eq('id', id)
     
     setNotifications(prev => prev.filter(n => n.id !== id))
+    window.dispatchEvent(new Event('inbox-read-update'))
   }
 
   const getNotificationMessage = (notification: any) => {

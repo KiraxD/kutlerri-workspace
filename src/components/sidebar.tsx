@@ -82,8 +82,13 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
     }
     
     fetchUnreadCount()
+    window.addEventListener('inbox-read-update', fetchUnreadCount)
     const interval = setInterval(fetchUnreadCount, 5000)
-    return () => clearInterval(interval)
+    
+    return () => {
+      window.removeEventListener('inbox-read-update', fetchUnreadCount)
+      clearInterval(interval)
+    }
   }, [])
 
   return (
