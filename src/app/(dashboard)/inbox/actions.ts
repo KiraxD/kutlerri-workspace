@@ -161,3 +161,32 @@ export async function markMessagesAsReadAction(senderId: string) {
     return { success: false, error: error.message }
   }
 }
+
+export async function getInboxUnreadCountAction() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return 0
+
+    // Fetch count of unread messages
+    const { count: msgCount, error: msgError } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('receiver_id', user.id)
+      .is('read_at', null)
+
+    // Fetch count of active notifications (unread and unarchived)
+    const { count: notifCount, error: notifError } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .is('archived_at', null)
+      .is('read_at', null)
+
+    const total = (msgCount || 0) + (notifCount || 0)
+    return total
+  } catch (error) {
+    console.error('Error fetching unread count:', error)
+    return 0
+  }
+}

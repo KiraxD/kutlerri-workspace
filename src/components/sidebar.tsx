@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
+import { getInboxUnreadCountAction } from '@/app/(dashboard)/inbox/actions'
 
 interface SidebarProps {
   userName: string | null
@@ -56,11 +57,11 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
   const router = useRouter()
   const pathname = usePathname()
   const initials = getInitials(userName, userEmail)
+  const currentProjectId = pathname.startsWith('/projects/') ? pathname.split('/')[2] : ''
 
   const [isProjectsListExpanded, setIsProjectsListExpanded] = useState(true)
   const [expandedProjectIds, setExpandedProjectIds] = useState<Record<string, boolean>>({})
-
-  const currentProjectId = pathname.startsWith('/projects/') ? pathname.split('/')[2] : ''
+  const [inboxUnreadCount, setInboxUnreadCount] = useState<number>(0)
 
   // Auto-expand active project
   useEffect(() => {
@@ -68,6 +69,22 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
       setExpandedProjectIds((prev) => ({ ...prev, [currentProjectId]: true }))
     }
   }, [currentProjectId])
+
+  // Fetch unread count for Inbox
+  useEffect(() => {
+    async function fetchUnreadCount() {
+      try {
+        const count = await getInboxUnreadCountAction()
+        setInboxUnreadCount(count)
+      } catch (err) {
+        console.error('Failed to fetch unread count:', err)
+      }
+    }
+    
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <aside className="w-[240px] flex-shrink-0 flex flex-col z-20 relative" style={{ height: '100vh' }}>
@@ -115,7 +132,7 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
               <NavItem href="/home" icon={<Home className="w-4 h-4" />} label="Home" />
             )}
             {isNavItemVisible(role, 'inbox') && (
-              <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />
+              <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" badge={inboxUnreadCount} />
             )}
             {isNavItemVisible(role, 'my-tasks') && (
               <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
