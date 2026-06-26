@@ -190,3 +190,22 @@ export async function getInboxUnreadCountAction() {
     return 0
   }
 }
+
+export async function markAllNotificationsAsReadAction() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Unauthorized' }
+
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .is('read_at', null)
+
+    if (error) return { success: false, error: error.message }
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}

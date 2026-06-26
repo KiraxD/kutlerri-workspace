@@ -11,7 +11,8 @@ import {
   getMessagesAction, 
   sendMessageAction,
   getConversationsAction,
-  markMessagesAsReadAction
+  markMessagesAsReadAction,
+  markAllNotificationsAsReadAction
 } from './actions'
 
 interface InboxClientProps {
@@ -33,6 +34,15 @@ export default function InboxClient({ initialNotifications, currentUserId }: Inb
   const [sending, setSending] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  // Mark all notifications as read on mount or when switching to notifications tab
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      markAllNotificationsAsReadAction().then(() => {
+        window.dispatchEvent(new Event('inbox-read-update'))
+      })
+    }
+  }, [activeTab])
 
   useEffect(() => {
     if (activeTab !== 'chat') return
