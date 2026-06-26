@@ -342,7 +342,7 @@ export default function ProjectDetailClient({
             ) : (
               <div className="grid gap-3">
                 {tasks.map((task: any) => (
-                  <Link key={task.id} href={`/tasks/${task.id}`}>
+                  <Link key={task.id} href={`/task/${task.identifier}`}>
                     <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:border-indigo-400/50 hover:shadow-sm transition-all group">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${STATUS_DOT[task.status] ?? 'bg-gray-300'}`} />
