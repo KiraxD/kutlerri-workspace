@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Bell,
   LayoutGrid,
+  CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
@@ -168,6 +169,9 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
             )}
             {isNavItemVisible(role, 'favorites') && (
               <NavItem href="/favorites" icon={<Star className="w-4 h-4" />} label="Favorites" />
+            )}
+            {isNavItemVisible(role, 'attendance') && (
+              <NavItem href="/attendance" icon={<CalendarDays className="w-4 h-4" />} label="Attendance" />
             )}
           </div>
 

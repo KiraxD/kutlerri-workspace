@@ -425,6 +425,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'teams',
     'employees',
     'settings',
+    'attendance',
   ],
   admin: [
     'search',
@@ -437,6 +438,7 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'vault',
     'teams',
     'settings',
+    'attendance',
   ],
   manager: [
     'search',
@@ -449,9 +451,10 @@ export const NAV_VISIBILITY: Record<OrgRole, string[]> = {
     'vault',
     'teams',
     'settings',
+    'attendance',
   ],
-  employee: ['search', 'home', 'inbox', 'my-tasks', 'favorites', 'projects', 'vault', 'settings'],
-  viewer: ['search', 'home', 'inbox', 'my-tasks', 'favorites', 'projects', 'vault'],
+  employee: ['search', 'home', 'inbox', 'my-tasks', 'favorites', 'projects', 'vault', 'settings', 'attendance'],
+  viewer: ['search', 'home', 'inbox', 'my-tasks', 'favorites', 'projects', 'vault', 'attendance'],
 }
 
 /**
@@ -474,6 +477,7 @@ export function isNavItemVisible(role: OrgRole | null | undefined, navItem: stri
       'vault',
       'teams',
       'settings',
+      'attendance',
     ]
     return defaultItems.includes(navItem)
   }
@@ -498,6 +502,7 @@ export function getVisibleNavItems(role: OrgRole | null | undefined): string[] {
       'vault',
       'teams',
       'settings',
+      'attendance',
     ]
   }
   return NAV_VISIBILITY[role] ?? []
