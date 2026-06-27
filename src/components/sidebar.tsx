@@ -167,9 +167,6 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
             {isNavItemVisible(role, 'my-tasks') && (
               <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
             )}
-            {isNavItemVisible(role, 'favorites') && (
-              <NavItem href="/favorites" icon={<Star className="w-4 h-4" />} label="Favorites" />
-            )}
             {isNavItemVisible(role, 'attendance') && (
               <NavItem href="/attendance" icon={<CalendarDays className="w-4 h-4" />} label="Attendance" />
             )}
