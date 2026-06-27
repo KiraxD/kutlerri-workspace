@@ -23,6 +23,7 @@ import {
   Bell,
   LayoutGrid,
   CalendarDays,
+  RefreshCw,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { isNavItemVisible, type OrgRole } from '@/lib/permissions'
@@ -208,6 +209,9 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
                     </div>
                   )}
                 </div>
+              )}
+              {isNavItemVisible(role, 'cycles') && (
+                <NavItem href="/cycles" icon={<RefreshCw className="w-4 h-4 text-violet-400" />} label="Cycles" />
               )}
               {isNavItemVisible(role, 'roadmap') && (
                 <NavItem href="/roadmap" icon={<Route className="w-4 h-4 text-teal-400" />} label="Roadmap" />
