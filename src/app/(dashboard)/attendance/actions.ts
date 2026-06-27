@@ -135,7 +135,7 @@ export async function getAttendanceLogsAction() {
 
     if (!member) return []
 
-    const isPrivileged = ['super_admin', 'admin', 'manager'].includes(member.role)
+    const isPrivileged = ['super_admin', 'admin'].includes(member.role)
 
     if (isPrivileged) {
       // Query all logs in the organization
