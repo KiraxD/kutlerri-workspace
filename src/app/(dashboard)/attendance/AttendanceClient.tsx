@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { clockInAction, clockOutAction } from './actions'
-import { CalendarDays, MapPin, Compass, Play, Square, Loader2, ArrowUpRight, History } from 'lucide-react'
+import { CalendarDays, MapPin, Compass, Play, Square, Loader2, ArrowUpRight, History, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import * as XLSX from 'xlsx'
 
 interface AttendanceLog {
   id: string
@@ -126,6 +127,25 @@ export function AttendanceClient({ initialLogs, initialActiveLog, currentUserId 
     }
   }
 
+  const downloadXLSX = () => {
+    const exportData = logs.map((log) => ({
+      Employee: log.profile?.full_name || 'Anonymous',
+      Email: log.profile?.email || '',
+      'Clock In': new Date(log.clock_in).toLocaleString(),
+      'Clock Out': log.clock_out ? new Date(log.clock_out).toLocaleString() : 'Active',
+      'Total Hours': log.total_hours != null ? log.total_hours : '',
+      Latitude: log.latitude || '',
+      Longitude: log.longitude || '',
+      'Location Name': log.location_name || '',
+      'Google Maps Link': log.latitude && log.longitude ? `https://www.google.com/maps?q=${log.latitude},${log.longitude}` : ''
+    }))
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Logs')
+    XLSX.writeFile(workbook, 'attendance_logs.xlsx')
+  }
+
   return (
     <div className="flex-1 p-8 space-y-8 bg-background max-w-6xl mx-auto w-full">
       {/* Header */}
@@ -245,9 +265,22 @@ export function AttendanceClient({ initialLogs, initialActiveLog, currentUserId 
 
       {/* Logs History Table */}
       <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm">
-        <div className="px-6 py-4 bg-muted/10 border-b border-border/60 flex items-center gap-2">
-          <History className="w-4 h-4 text-violet-500" />
-          <h2 className="text-sm font-bold text-foreground">Attendance Logs & Logs History</h2>
+        <div className="px-6 py-4 bg-muted/10 border-b border-border/60 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-violet-500" />
+            <h2 className="text-sm font-bold text-foreground">Attendance Logs & Logs History</h2>
+          </div>
+          {logs.length > 0 && (
+            <Button
+              onClick={downloadXLSX}
+              variant="outline"
+              size="sm"
+              className="rounded-lg text-xs font-semibold flex items-center gap-1.5 border-border hover:bg-muted/50"
+            >
+              <Download className="w-3.5 h-3.5 text-violet-500" />
+              Export Excel (XLSX)
+            </Button>
+          )}
         </div>
 
         <div className="overflow-x-auto">
