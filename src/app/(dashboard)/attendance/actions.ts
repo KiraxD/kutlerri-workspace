@@ -17,7 +17,7 @@ export async function getClockInStatusAction() {
 
     const { data: log, error } = await supabase
       .from('attendance_logs')
-      .select('*')
+      .select('*, profile:profiles!user_id(id, full_name, email)')
       .eq('user_id', user.id)
       .is('clock_out', null)
       .maybeSingle()
@@ -68,7 +68,7 @@ export async function clockInAction(params: ClockInParams = {}) {
         longitude: params.longitude || null,
         location_name: params.locationName || null,
       })
-      .select()
+      .select('*, profile:profiles!user_id(id, full_name, email)')
       .single()
 
     if (error) return { success: false, error: error.message }
@@ -107,7 +107,7 @@ export async function clockOutAction() {
         updated_at: clockOutTime.toISOString(),
       })
       .eq('id', active.id)
-      .select()
+      .select('*, profile:profiles!user_id(id, full_name, email)')
       .single()
 
     if (error) return { success: false, error: error.message }
