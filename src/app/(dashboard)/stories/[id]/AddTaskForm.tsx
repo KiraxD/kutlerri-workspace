@@ -7,11 +7,12 @@ import { AssigneePicker, type AssignableUser } from '@/components/AssigneePicker
 
 interface AddTaskFormProps {
   storyId: string
+  teamId?: string
 }
 
 const STATUSES = ['Todo', 'In Progress', 'Review', 'Blocked', 'Done']
 
-export function AddTaskForm({ storyId }: AddTaskFormProps) {
+export function AddTaskForm({ storyId, teamId }: AddTaskFormProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState('Todo')
@@ -39,6 +40,7 @@ export function AddTaskForm({ storyId }: AddTaskFormProps) {
         title: title.trim(),
         status,
         priority,
+        teamId,
         assigneeId: assigneeId ?? undefined,
       })
       if (result.success) {

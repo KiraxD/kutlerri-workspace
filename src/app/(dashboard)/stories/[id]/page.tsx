@@ -37,7 +37,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
   const { data: story, error } = await supabase
     .from('stories')
     .select(
-      '*, epic:epics(id, name, project_id, initiative:initiatives(id, name)), owner:profiles!owner_id(id, full_name, email), assignee:profiles!assignee_id(id, full_name, email)'
+      '*, epic:epics(id, name, project_id, project:projects(team_id), initiative:initiatives(id, name)), owner:profiles!owner_id(id, full_name, email), assignee:profiles!assignee_id(id, full_name, email)'
     )
     .eq('id', id)
     .single()
@@ -203,7 +203,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
             </div>
           )}
 
-          <AddTaskForm storyId={id} />
+          <AddTaskForm storyId={id} teamId={(story.epic as any)?.project?.team_id} />
         </div>
       </div>
     </div>
