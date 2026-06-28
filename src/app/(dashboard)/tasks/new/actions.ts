@@ -202,6 +202,8 @@ export async function updateTaskAction({
   status,
   priority,
   estimate,
+  cycleId,
+  projectId,
 }: {
   id: string
   title: string
@@ -209,10 +211,24 @@ export async function updateTaskAction({
   status: string
   priority: string
   estimate?: number | null
+  cycleId?: string | null
+  projectId?: string | null
 }) {
   try {
     const { userId } = await verifyPermission('updateTask')
     const supabase = await createClient()
+
+    let resolvedTeamId: string | undefined = undefined
+    if (projectId) {
+      const { data: proj } = await supabase
+        .from('projects')
+        .select('team_id')
+        .eq('id', projectId)
+        .single()
+      if (proj?.team_id) {
+        resolvedTeamId = proj.team_id
+      }
+    }
 
     const { error } = await supabase
       .from('tasks')
@@ -222,6 +238,9 @@ export async function updateTaskAction({
         status: status as any,
         priority: priority as any,
         estimate: estimate || null,
+        cycle_id: cycleId !== undefined ? cycleId : undefined,
+        project_id: projectId !== undefined ? projectId : undefined,
+        ...(resolvedTeamId ? { team_id: resolvedTeamId } : {}),
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

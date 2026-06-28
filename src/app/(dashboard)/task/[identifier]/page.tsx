@@ -57,10 +57,22 @@ export default async function TaskDetailPage({
       team:team_id(id, name, identifier, organization_id),
       creator:creator_id(id, email, full_name),
       assignee:assignee_id(id, email, full_name),
-      project:project_id(id, name)
+      project:project_id(id, name),
+      cycle:cycle_id(id, name)
     `)
     .eq('identifier', identifier)
     .single()
+
+  // Fetch active projects and cycles
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id, name')
+    .order('name')
+
+  const { data: cycles } = await supabase
+    .from('cycles')
+    .select('id, name')
+    .order('name')
 
   if (error) {
     console.error('Task fetch error:', error)
@@ -150,7 +162,11 @@ export default async function TaskDetailPage({
             status: task.status,
             priority: task.priority,
             estimate: task.estimate,
+            cycleId: task.cycle_id,
+            projectId: task.project_id,
           }}
+          projects={projects ?? []}
+          cycles={cycles ?? []}
           redirectOnDelete={task.project_id ? `/projects/${task.project_id}?tab=tasks` : "/my-tasks"}
         />
         <div className="h-4 w-px bg-border mx-2" />
@@ -234,6 +250,28 @@ export default async function TaskDetailPage({
                     </Badge>
                   ) : (
                     <span className="text-muted-foreground">None</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground w-24">Project</span>
+                <div className="flex items-center gap-2 flex-1 justify-start">
+                  {task.project ? (
+                    <span className="font-medium">{(task.project as any).name}</span>
+                  ) : (
+                    <span className="text-muted-foreground italic text-xs">No Project</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground w-24">Cycle</span>
+                <div className="flex items-center gap-2 flex-1 justify-start">
+                  {task.cycle ? (
+                    <span className="font-medium">{(task.cycle as any).name}</span>
+                  ) : (
+                    <span className="text-muted-foreground italic text-xs">No Cycle</span>
                   )}
                 </div>
               </div>

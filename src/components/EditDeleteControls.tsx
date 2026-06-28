@@ -18,8 +18,12 @@ interface EditDeleteControlsProps {
     status?: string | null
     priority?: string | null
     estimate?: number | null
+    cycleId?: string | null
+    projectId?: string | null
   }
   redirectOnDelete: string
+  projects?: any[]
+  cycles?: any[]
 }
 
 export function EditDeleteControls({
@@ -27,6 +31,8 @@ export function EditDeleteControls({
   entityType,
   initialData,
   redirectOnDelete,
+  projects = [],
+  cycles = [],
 }: EditDeleteControlsProps) {
   const router = useRouter()
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -40,6 +46,8 @@ export function EditDeleteControls({
   const [status, setStatus] = useState(initialData.status || 'Todo')
   const [priority, setPriority] = useState(initialData.priority || 'None')
   const [estimate, setEstimate] = useState<number | null>(initialData.estimate ?? null)
+  const [cycleId, setCycleId] = useState<string | null>(initialData.cycleId ?? null)
+  const [projectId, setProjectId] = useState<string | null>(initialData.projectId ?? null)
 
   function handleDelete() {
     setError(null)
@@ -73,7 +81,7 @@ export function EditDeleteControls({
       } else if (entityType === 'story') {
         res = await updateStoryAction({ id: entityId, name, description, status, priority, estimate })
       } else {
-        res = await updateTaskAction({ id: entityId, title: name, description, status, priority, estimate })
+        res = await updateTaskAction({ id: entityId, title: name, description, status, priority, estimate, cycleId, projectId })
       }
 
       if (res.success) {
@@ -183,6 +191,38 @@ export function EditDeleteControls({
                     onChange={(e) => setEstimate(e.target.value === '' ? null : Number(e.target.value))}
                     className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-violet-500 transition-all"
                   />
+                </div>
+              )}
+
+              {entityType === 'task' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">Project</label>
+                    <select
+                      value={projectId || ''}
+                      onChange={(e) => setProjectId(e.target.value || null)}
+                      className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-violet-500 transition-all"
+                    >
+                      <option value="">No Project</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">Cycle</label>
+                    <select
+                      value={cycleId || ''}
+                      onChange={(e) => setCycleId(e.target.value || null)}
+                      className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-violet-500 transition-all"
+                    >
+                      <option value="">No Cycle</option>
+                      {cycles.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
 
