@@ -226,12 +226,14 @@ export function CyclesClient({ initialCycles, teams, projects, userRole }: Cycle
     const actualPoints: number[] = []
     const labels: string[] = []
 
+    const totalPointsToUse = totalPoints > 0 ? totalPoints : filteredIssues.length
+
     for (let i = 0; i <= totalDays; i++) {
       const currentDay = new Date(start.getTime() + i * 24 * 60 * 60 * 1000)
       labels.push(currentDay.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))
 
       // Ideal: linear decrease
-      const ideal = Math.max(0, parseFloat((totalPoints - (totalPoints / totalDays) * i).toFixed(1)))
+      const ideal = Math.max(0, parseFloat((totalPointsToUse - (totalPointsToUse / totalDays) * i).toFixed(1)))
       idealPoints.push(ideal)
 
       // Actual: remaining points at this day
@@ -241,11 +243,11 @@ export function CyclesClient({ initialCycles, teams, projects, userRole }: Cycle
           if (issue.status === 'Done') {
             const completedDate = new Date(issue.updated_at)
             if (completedDate <= currentDay) {
-              completedSoFar += (issue.estimate || 0)
+              completedSoFar += totalPoints > 0 ? (issue.estimate || 0) : 1
             }
           }
         })
-        actualPoints.push(Math.max(0, totalPoints - completedSoFar))
+        actualPoints.push(Math.max(0, totalPointsToUse - completedSoFar))
       }
     }
 
