@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import ProjectDetailClient from './ProjectDetailClient'
+import { HierarchyBreadcrumb } from '@/components/hierarchy-breadcrumb'
 
 export default async function ProjectDetailPage({
   params,
@@ -106,15 +107,24 @@ export default async function ProjectDetailPage({
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
-    <ProjectDetailClient
-      project={project}
-      members={members}
-      initiatives={initiatives ?? []}
-      epics={epics ?? []}
-      stories={stories}
-      tasks={tasks ?? []}
-      subTasks={projectSubTasks}
-      currentUserId={user?.id}
-    />
+    <div className="flex flex-col h-full bg-background">
+      <HierarchyBreadcrumb
+        items={[
+          { label: 'Organization', href: '/home' },
+          { label: 'Projects', href: '/projects' },
+          { label: project.name, current: true },
+        ]}
+      />
+      <ProjectDetailClient
+        project={project}
+        members={members}
+        initiatives={initiatives ?? []}
+        epics={epics ?? []}
+        stories={stories}
+        tasks={tasks ?? []}
+        subTasks={projectSubTasks}
+        currentUserId={user?.id}
+      />
+    </div>
   )
 }

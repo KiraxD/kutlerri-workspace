@@ -23,6 +23,7 @@ const TASK_STATUS_ICON: Record<string, React.ReactNode> = {
   'In Progress': <Clock className="w-4 h-4 text-yellow-500" />,
 }
 
+import { HierarchyBreadcrumb } from '@/components/hierarchy-breadcrumb'
 import { EditDeleteControls } from '@/components/EditDeleteControls'
 
 export default async function StoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -57,41 +58,17 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col bg-background min-h-screen">
+      <HierarchyBreadcrumb
+        items={[
+          { label: 'Organization', href: '/home' },
+          ...(story.epic?.initiative ? [{ label: story.epic.initiative.name, href: `/initiatives/${story.epic.initiative.id}` }] : []),
+          ...(story.epic ? [{ label: story.epic.name, href: `/epics/${story.epic.id}` }] : []),
+          { label: 'Stories', href: '/projects?tab=stories' },
+          { label: story.name, current: true },
+        ]}
+      />
       {/* Header */}
       <div className="px-8 py-5 border-b border-border bg-gradient-to-r from-emerald-50 to-background">
-        <div className="flex items-center gap-3 mb-3">
-          <Link href={story.epic?.project_id ? `/projects/${story.epic.project_id}?tab=stories` : "/projects"}>
-            <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-              <ArrowLeft className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </Link>
-          {/* Breadcrumb */}
-          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            {story.epic?.initiative && (
-              <>
-                <Link href={story.epic?.project_id ? `/projects/${story.epic.project_id}?tab=initiatives` : "/initiatives"} className="hover:text-foreground transition-colors flex items-center gap-1">
-                  <Compass className="w-3 h-3" />
-                  {story.epic.initiative.name}
-                </Link>
-                <span>→</span>
-              </>
-            )}
-            {story.epic && (
-              <>
-                <Link href={`/epics/${story.epic.id}`} className="hover:text-foreground transition-colors flex items-center gap-1">
-                  <Layers className="w-3 h-3" />
-                  {story.epic.name}
-                </Link>
-                <span>→</span>
-              </>
-            )}
-            <span className="text-foreground font-medium flex items-center gap-1">
-              <BookOpen className="w-3 h-3 text-emerald-600" />
-              {story.name}
-            </span>
-          </nav>
-        </div>
-
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">

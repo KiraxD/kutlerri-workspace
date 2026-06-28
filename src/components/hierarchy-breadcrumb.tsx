@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, ArrowLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export interface BreadcrumbItem {
   label: string
@@ -20,11 +21,21 @@ interface HierarchyBreadcrumbProps {
  * Organization → Teams → Initiatives → Epics → Tasks → SubTasks
  */
 export function HierarchyBreadcrumb({ items, className = '' }: HierarchyBreadcrumbProps) {
+  const router = useRouter()
+
   return (
     <nav
       className={`flex items-center gap-2 px-6 py-3 border-b border-border text-sm text-muted-foreground bg-muted/30 ${className}`}
       aria-label="Breadcrumb"
     >
+      <button
+        onClick={() => router.back()}
+        className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition-all duration-150 shrink-0 mr-1 flex items-center justify-center border border-border/40 shadow-sm bg-background/50 hover:scale-105"
+        title="Go Back"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+      </button>
+
       {items.map((item, index) => (
         <div key={index} className="flex items-center gap-2">
           {index > 0 && <ChevronRight className="w-4 h-4 text-muted-foreground/50" />}

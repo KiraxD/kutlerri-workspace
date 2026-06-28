@@ -5,6 +5,7 @@ import { Compass, ArrowLeft, Layers, Calendar, Plus, ArrowRight } from 'lucide-r
 import { Button } from '@/components/ui/button'
 import { STATUS_DOT, STATUS_STYLES } from '@/lib/types'
 
+import { HierarchyBreadcrumb } from '@/components/hierarchy-breadcrumb'
 import { EditDeleteControls } from '@/components/EditDeleteControls'
 
 export default async function InitiativeDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,24 +37,15 @@ export default async function InitiativeDetailPage({ params }: { params: Promise
 
   return (
     <div className="flex flex-col bg-background min-h-screen">
+      <HierarchyBreadcrumb
+        items={[
+          { label: 'Organization', href: '/home' },
+          { label: 'Initiatives', href: '/projects?tab=initiatives' },
+          { label: initiative.name, current: true },
+        ]}
+      />
       {/* Header */}
       <div className="px-8 py-5 border-b border-border bg-gradient-to-r from-violet-50 to-background">
-        <div className="flex items-center gap-3 mb-3">
-          <Link href={initiative.project_id ? `/projects/${initiative.project_id}?tab=initiatives` : "/projects"}>
-            <button className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-              <ArrowLeft className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </Link>
-          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Link href={initiative.project_id ? `/projects/${initiative.project_id}?tab=initiatives` : "/projects"} className="hover:text-foreground transition-colors">Initiatives</Link>
-            <span>→</span>
-            <span className="text-foreground font-medium flex items-center gap-1">
-              <Compass className="w-3 h-3 text-violet-600" />
-              {initiative.name}
-            </span>
-          </nav>
-        </div>
-
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
