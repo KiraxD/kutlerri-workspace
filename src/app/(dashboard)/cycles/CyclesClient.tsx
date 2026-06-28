@@ -1,14 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createCycleAction, rolloverCycleTasksAction } from './actions'
-import { CalendarDays, RefreshCw, AlertCircle, Plus, Users, Layout, ArrowUpRight, Flame, Loader2, Play } from 'lucide-react'
+import { CalendarDays, RefreshCw, AlertCircle, Plus, Users, Layout, ArrowUpRight, Flame, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-interface Profile {
-  full_name: string | null
-  email: string
-}
 
 interface Issue {
   id: string
@@ -16,6 +11,7 @@ interface Issue {
   title: string
   status: string
   estimate: number | null
+  project_id: string | null
   updated_at: string
 }
 
@@ -35,12 +31,14 @@ interface Cycle {
 interface CyclesClientProps {
   initialCycles: any[]
   teams: any[]
+  projects: any[]
   userRole: string
 }
 
-export function CyclesClient({ initialCycles, teams, userRole }: CyclesClientProps) {
+export function CyclesClient({ initialCycles, teams, projects, userRole }: CyclesClientProps) {
   const [cycles, setCycles] = useState<Cycle[]>(initialCycles)
   const [selectedTeamId, setSelectedTeamId] = useState<string>(teams[0]?.id || '')
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,13 +65,16 @@ export function CyclesClient({ initialCycles, teams, userRole }: CyclesClientPro
     return start <= now && now <= end
   }) || filteredCycles[0] // fallback to latest if none active
 
-  // Calculate cycle stats
+  // Calculate cycle stats (filtered project-wise)
   const cycleIssues = activeCycle?.issues || []
-  const totalIssues = cycleIssues.length
-  const completedIssues = cycleIssues.filter((i) => i.status === 'Done').length
+  const filteredIssues = cycleIssues.filter(
+    (i) => !selectedProjectId || i.project_id === selectedProjectId
+  )
+  const totalIssues = filteredIssues.length
+  const completedIssues = filteredIssues.filter((i) => i.status === 'Done').length
   
-  const totalPoints = cycleIssues.reduce((sum, i) => sum + (i.estimate || 0), 0)
-  const completedPoints = cycleIssues.filter((i) => i.status === 'Done').reduce((sum, i) => sum + (i.estimate || 0), 0)
+  const totalPoints = filteredIssues.reduce((sum, i) => sum + (i.estimate || 0), 0)
+  const completedPoints = filteredIssues.filter((i) => i.status === 'Done').reduce((sum, i) => sum + (i.estimate || 0), 0)
   
   const progressPercent = totalPoints > 0 ? Math.round((completedPoints / totalPoints) * 100) : 0
 
@@ -158,7 +159,7 @@ export function CyclesClient({ initialCycles, teams, userRole }: CyclesClientPro
     }
   }
 
-  // Generate burn-down chart points
+  // Generate burn-down chart points based on project-wise filtered tasks
   const getBurnDownData = () => {
     if (!activeCycle) return { idealPoints: [], actualPoints: [], labels: [] }
 
@@ -183,7 +184,7 @@ export function CyclesClient({ initialCycles, teams, userRole }: CyclesClientPro
       // Actual: remaining points at this day
       if (currentDay <= new Date() || i === 0) {
         let completedSoFar = 0
-        cycleIssues.forEach((issue) => {
+        filteredIssues.forEach((issue) => {
           if (issue.status === 'Done') {
             const completedDate = new Date(issue.updated_at)
             if (completedDate <= currentDay) {
@@ -204,18 +205,18 @@ export function CyclesClient({ initialCycles, teams, userRole }: CyclesClientPro
   return (
     <div className="flex-1 p-8 space-y-8 bg-background max-w-6xl mx-auto w-full">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center border border-violet-500/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]">
             <RefreshCw className="w-5 h-5 text-violet-500" />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground">Cycle Management</h1>
-            <p className="text-xs text-muted-foreground">Plan sprints, track velocity, and analyze burn-down curves</p>
+            <p className="text-xs text-muted-foreground">Plan sprints, track velocity, and analyze burn-down curves project-wise</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Team Selector */}
           <div className="flex items-center gap-2 bg-muted/40 p-1 rounded-xl border border-border/60">
             <Users className="w-4 h-4 text-muted-foreground ml-2 shrink-0" />
@@ -227,6 +228,23 @@ export function CyclesClient({ initialCycles, teams, userRole }: CyclesClientPro
               {teams.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Project Selector (Project-wise Cycle Monitor) */}
+          <div className="flex items-center gap-2 bg-muted/40 p-1 rounded-xl border border-border/60">
+            <Layout className="w-4 h-4 text-muted-foreground ml-2 shrink-0" />
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="bg-transparent border-none text-xs font-semibold py-1 pr-8 pl-1 rounded focus:ring-0 text-foreground cursor-pointer"
+            >
+              <option value="">All Projects</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
                 </option>
               ))}
             </select>
@@ -390,14 +408,14 @@ export function CyclesClient({ initialCycles, teams, userRole }: CyclesClientPro
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {cycleIssues.length === 0 ? (
+                {filteredIssues.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground italic">
-                      No issues assigned to this cycle yet. Open a task's details panel to link it here.
+                      {selectedProjectId ? 'No issues assigned to this project in this cycle.' : 'No issues assigned to this cycle yet. Open a task\'s details panel to link it here.'}
                     </td>
                   </tr>
                 ) : (
-                  cycleIssues.map((issue) => (
+                  filteredIssues.map((issue) => (
                     <tr key={issue.id} className="hover:bg-muted/10 transition-colors">
                       <td className="px-6 py-4 font-mono font-bold text-violet-500">
                         {issue.identifier}

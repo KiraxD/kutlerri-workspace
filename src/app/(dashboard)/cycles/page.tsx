@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getCyclesAction, getTeamsAction } from './actions'
+import { getCyclesAction, getTeamsAction, getProjectsAction } from './actions'
 import { CyclesClient } from './CyclesClient'
 
 export default async function CyclesPage() {
@@ -8,10 +8,11 @@ export default async function CyclesPage() {
 
   if (!user) return null
 
-  // Fetch cycles and teams in parallel
-  const [cycles, teams] = await Promise.all([
+  // Fetch cycles, teams, and projects in parallel
+  const [cycles, teams, projects] = await Promise.all([
     getCyclesAction(),
-    getTeamsAction()
+    getTeamsAction(),
+    getProjectsAction()
   ])
 
   // Fetch user's role in the organization
@@ -28,7 +29,9 @@ export default async function CyclesPage() {
     <CyclesClient
       initialCycles={cycles}
       teams={teams}
+      projects={projects}
       userRole={userRole}
     />
   )
 }
+

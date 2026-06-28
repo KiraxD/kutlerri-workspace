@@ -69,6 +69,35 @@ export async function getTeamsAction() {
   }
 }
 
+export async function getProjectsAction() {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (!member) return []
+
+    const { data: projects, error } = await supabase
+      .from('projects')
+      .select('id, name')
+      .eq('organization_id', member.organization_id)
+
+    if (error) throw error
+    return projects || []
+  } catch (error) {
+    console.error('Error fetching projects:', error)
+    return []
+  }
+}
+
+
 export async function createCycleAction({
   teamId,
   name,
