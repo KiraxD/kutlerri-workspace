@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { createCycleAction, rolloverCycleTasksAction } from './actions'
-import { CalendarDays, RefreshCw, AlertCircle, Plus, Users, Layout, ArrowUpRight, Flame, Loader2 } from 'lucide-react'
+import { updateTaskStatusAction } from '@/app/(dashboard)/tasks/new/actions'
+import { CalendarDays, RefreshCw, AlertCircle, Plus, Users, Layout, ArrowUpRight, Flame, Loader2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface Issue {
@@ -41,6 +42,55 @@ export function CyclesClient({ initialCycles, teams, projects, userRole }: Cycle
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null)
+
+  const handleToggleTaskStatus = async (issueId: string, currentStatus: string) => {
+    if (updatingTaskId) return
+    const isCompleted = currentStatus === 'Done'
+    const newStatus = isCompleted ? 'Todo' : 'Done'
+    
+    setUpdatingTaskId(issueId)
+    setError(null)
+    
+    // Optimistic UI update
+    setCycles((prevCycles) =>
+      prevCycles.map((c) => ({
+        ...c,
+        issues: c.issues?.map((i) =>
+          i.id === issueId ? { ...i, status: newStatus, updated_at: new Date().toISOString() } : i
+        ) || []
+      }))
+    )
+
+    try {
+      const res = await updateTaskStatusAction({ id: issueId, status: newStatus })
+      if (!res.success) {
+        // Rollback
+        setCycles((prevCycles) =>
+          prevCycles.map((c) => ({
+            ...c,
+            issues: c.issues?.map((i) =>
+              i.id === issueId ? { ...i, status: currentStatus } : i
+            ) || []
+          }))
+        )
+        setError(res.error || 'Failed to update task status')
+      }
+    } catch (err: any) {
+      // Rollback
+      setCycles((prevCycles) =>
+        prevCycles.map((c) => ({
+          ...c,
+          issues: c.issues?.map((i) =>
+            i.id === issueId ? { ...i, status: currentStatus } : i
+          ) || []
+        }))
+      )
+      setError(err.message || 'An error occurred')
+    } finally {
+      setUpdatingTaskId(null)
+    }
+  }
 
   // Creation form state
   const [showCreate, setShowCreate] = useState(false)
@@ -424,9 +474,31 @@ export function CyclesClient({ initialCycles, teams, projects, userRole }: Cycle
                         {issue.title}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted border border-border">
-                          {issue.status}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleTaskStatus(issue.id, issue.status)}
+                            disabled={updatingTaskId === issue.id}
+                            className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all shrink-0 hover:scale-105 ${
+                              issue.status === 'Done'
+                                ? 'bg-green-500/20 border-green-500 text-green-500 hover:bg-green-500/30'
+                                : 'border-muted-foreground/30 hover:border-violet-500 text-transparent'
+                            }`}
+                            title={issue.status === 'Done' ? 'Mark as incomplete' : 'Mark as complete'}
+                          >
+                            {updatingTaskId === issue.id ? (
+                              <Loader2 className="w-2.5 h-2.5 animate-spin text-muted-foreground" />
+                            ) : (
+                              <Check className={`w-3.5 h-3.5 ${issue.status === 'Done' ? 'opacity-100' : 'opacity-0 hover:opacity-40'}`} />
+                            )}
+                          </button>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                            issue.status === 'Done'
+                              ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                              : 'bg-muted border-border text-muted-foreground'
+                          }`}>
+                            {issue.status}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 font-mono font-medium text-foreground">
                         {issue.estimate != null ? `${issue.estimate} pts` : '—'}
