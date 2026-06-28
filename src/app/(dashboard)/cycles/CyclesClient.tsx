@@ -40,6 +40,7 @@ export function CyclesClient({ initialCycles, teams, projects, userRole }: Cycle
   const [cycles, setCycles] = useState<Cycle[]>(initialCycles)
   const [selectedTeamId, setSelectedTeamId] = useState<string>(teams[0]?.id || '')
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [selectedCycleId, setSelectedCycleId] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null)
@@ -109,11 +110,13 @@ export function CyclesClient({ initialCycles, teams, projects, userRole }: Cycle
   
   // Active cycle is the one where starts_at <= now <= ends_at
   const now = new Date()
-  const activeCycle = filteredCycles.find((c) => {
+  const activeCycleDefault = filteredCycles.find((c) => {
     const start = new Date(c.starts_at)
     const end = new Date(c.ends_at)
     return start <= now && now <= end
   }) || filteredCycles[0] // fallback to latest if none active
+
+  const activeCycle = filteredCycles.find((c) => c.id === selectedCycleId) || activeCycleDefault
 
   // Calculate cycle stats (filtered project-wise)
   const cycleIssues = activeCycle?.issues || []
@@ -299,6 +302,24 @@ export function CyclesClient({ initialCycles, teams, projects, userRole }: Cycle
               ))}
             </select>
           </div>
+
+          {/* Cycle Selector */}
+          {filteredCycles.length > 0 && (
+            <div className="flex items-center gap-2 bg-muted/40 p-1 rounded-xl border border-border/60">
+              <CalendarDays className="w-4 h-4 text-muted-foreground ml-2 shrink-0" />
+              <select
+                value={activeCycle?.id || ''}
+                onChange={(e) => setSelectedCycleId(e.target.value)}
+                className="bg-transparent border-none text-xs font-semibold py-1 pr-8 pl-1 rounded focus:ring-0 text-foreground cursor-pointer"
+              >
+                {filteredCycles.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {isAdminOrManager && (
             <>
