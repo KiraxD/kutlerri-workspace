@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { verifyPermission } from '@/lib/auth-helpers'
 import { createNotification } from '@/lib/notification-helper'
+import { revalidatePath } from 'next/cache'
 
 export async function createTask(formData: FormData) {
   const { userId, orgId } = await verifyPermission('createTask')
@@ -364,6 +365,13 @@ export async function updateTaskStatusAction({
       .eq('id', id)
 
     if (error) return { success: false, error: error.message }
+
+    revalidatePath('/cycles')
+    revalidatePath('/roadmap')
+    revalidatePath('/projects')
+    revalidatePath('/my-tasks')
+    revalidatePath('/task')
+    
     return { success: true }
   } catch (error: any) {
     return { success: false, error: error.message }
