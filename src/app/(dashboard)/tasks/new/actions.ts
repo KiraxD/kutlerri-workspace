@@ -23,11 +23,24 @@ export async function createTask(formData: FormData) {
     throw new Error('Title and Team are required')
   }
 
+  // Override team_id with project's team_id if project is provided
+  let resolvedTeamId = team_id
+  if (project_id) {
+    const { data: proj } = await supabase
+      .from('projects')
+      .select('team_id')
+      .eq('id', project_id)
+      .single()
+    if (proj?.team_id) {
+      resolvedTeamId = proj.team_id
+    }
+  }
+
   // Verify user is a member of the team
   const { data: teamMember, error: memberError } = await supabase
     .from('team_members')
     .select('team_id')
-    .eq('team_id', team_id)
+    .eq('team_id', resolvedTeamId)
     .eq('user_id', userId)
     .single()
 
@@ -40,7 +53,7 @@ export async function createTask(formData: FormData) {
     .insert({
       title,
       description,
-      team_id,
+      team_id: resolvedTeamId,
       status,
       priority,
       creator_id: userId,
