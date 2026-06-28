@@ -29,7 +29,7 @@ export async function getCyclesAction() {
 
     const { data: cycles, error } = await supabase
       .from('cycles')
-      .select('*, team:teams(id, name), issues(*)')
+      .select('*, team:teams(id, name), issues:tasks(*)')
       .in('team_id', teamIds)
       .order('starts_at', { ascending: false })
 
