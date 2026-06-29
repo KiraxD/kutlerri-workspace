@@ -54,7 +54,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ id
   const taskList = tasks ?? []
   const totalTasks = taskList.length
   const doneTasks = taskList.filter((t: any) => t.status === 'Done').length
-  const progress = story.progress ?? (totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0)
+  const progress = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
 
   return (
     <div className="flex flex-col bg-background min-h-screen">

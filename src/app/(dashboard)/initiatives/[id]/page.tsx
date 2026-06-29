@@ -33,7 +33,7 @@ export default async function InitiativeDetailPage({ params }: { params: Promise
   const epicList = epics ?? []
   const totalEpics = epicList.length
   const doneEpics = epicList.filter((e: any) => e.status === 'Done').length
-  const progress = initiative.progress ?? (totalEpics > 0 ? Math.round((doneEpics / totalEpics) * 100) : 0)
+  const progress = totalEpics > 0 ? Math.round((doneEpics / totalEpics) * 100) : 0
 
   return (
     <div className="flex flex-col bg-background min-h-screen">

@@ -46,7 +46,7 @@ export default async function EpicDetailPage({ params }: { params: Promise<{ id:
   const storyList = stories ?? []
   const totalStories = storyList.length
   const doneStories = storyList.filter((s: any) => s.status === 'Done').length
-  const progress = epic.progress ?? (totalStories > 0 ? Math.round((doneStories / totalStories) * 100) : 0)
+  const progress = totalStories > 0 ? Math.round((doneStories / totalStories) * 100) : 0
 
   // Also get total task count across stories
   let totalTasks = 0
