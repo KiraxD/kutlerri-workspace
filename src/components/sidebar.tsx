@@ -163,7 +163,7 @@ export function Sidebar({ userName, userEmail, role, projects = [] }: SidebarPro
               <NavItem href="/home" icon={<Home className="w-4 h-4" />} label="Home" />
             )}
             {isNavItemVisible(role, 'inbox') && (
-              <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" badge={inboxUnreadCount} />
+              <NavItem href="/inbox" icon={<Inbox className="w-4 h-4" />} label="Inbox" />
             )}
             {isNavItemVisible(role, 'my-tasks') && (
               <NavItem href="/my-tasks" icon={<CheckCircle2 className="w-4 h-4" />} label="My Tasks" />
